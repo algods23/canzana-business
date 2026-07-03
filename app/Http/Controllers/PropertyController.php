@@ -69,29 +69,29 @@ class PropertyController extends Controller
             ->withCount([
                 'buildings',
                 'rooms',
-                'rooms as occupied_rooms' => fn ($query) => $query->where('status', 'occupied'),
+                'rooms as occupied_rooms' => fn ($query) => $query->where('rooms.status', 'occupied'),
             ])
             ->withSum([
-                'rooms as monthly_revenue' => fn ($query) => $query->where('status', 'occupied'),
+                'rooms as monthly_revenue' => fn ($query) => $query->where('rooms.status', 'occupied'),
             ], 'rent');
 
         if ($search = $request->get('search')) {
             $properties->where(function ($query) use ($search): void {
-                $query->where('name', 'like', '%'.$search.'%')
-                    ->orWhere('city', 'like', '%'.$search.'%');
+                $query->where('properties.name', 'like', '%'.$search.'%')
+                    ->orWhere('properties.city', 'like', '%'.$search.'%');
             });
         }
 
         if ($type = $request->get('type')) {
-            $properties->where('type', $type);
+            $properties->where('properties.type', $type);
         }
 
         if ($status = $request->get('status')) {
-            $properties->where('status', $status);
+            $properties->where('properties.status', $status);
         }
 
         return view('properties.index', [
-            'properties' => $properties->orderBy('name')->get(),
+            'properties' => $properties->orderBy('properties.name')->get(),
             'filters' => $request->only(['search', 'type', 'status']),
         ]);
     }
@@ -101,14 +101,14 @@ class PropertyController extends Controller
         $property->loadCount([
             'buildings',
             'rooms',
-            'rooms as occupied_rooms' => fn ($query) => $query->where('status', 'occupied'),
+            'rooms as occupied_rooms' => fn ($query) => $query->where('rooms.status', 'occupied'),
         ]);
 
         return view('properties.show', [
             'property' => $property,
             'buildings' => $property->buildings()->withCount([
                 'rooms',
-                'rooms as occupied' => fn ($query) => $query->where('status', 'occupied'),
+                'rooms as occupied' => fn ($query) => $query->where('rooms.status', 'occupied'),
             ])->orderBy('name')->get(),
         ]);
     }

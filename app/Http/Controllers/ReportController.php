@@ -16,11 +16,11 @@ class ReportController extends Controller
             'occupancy' => Analytics::occupancyByProperty(),
             'properties' => Property::query()->withCount([
                 'rooms',
-                'rooms as occupied_rooms' => fn ($query) => $query->where('status', 'occupied'),
+                'rooms as occupied_rooms' => fn ($query) => $query->where('rooms.status', 'occupied'),
             ])->withSum([
-                'rooms as monthly_revenue' => fn ($query) => $query->where('status', 'occupied'),
+                'rooms as monthly_revenue' => fn ($query) => $query->where('rooms.status', 'occupied'),
             ], 'rent')->orderBy('name')->get(),
-            'overduePayments' => Payment::query()->with(['tenantModel', 'roomModel', 'propertyModel'])->where('status', 'overdue')->orderBy('due_date')->get(),
+            'overduePayments' => Payment::query()->with(['tenantModel', 'roomModel', 'propertyModel'])->where('payments.status', 'overdue')->orderBy('due_date')->get(),
         ]);
     }
 }

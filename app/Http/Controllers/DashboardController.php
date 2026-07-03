@@ -14,10 +14,10 @@ class DashboardController extends Controller
             ->withCount([
                 'buildings',
                 'rooms',
-                'rooms as occupied_rooms' => fn ($query) => $query->where('status', 'occupied'),
+                'rooms as occupied_rooms' => fn ($query) => $query->where('rooms.status', 'occupied'),
             ])
             ->withSum([
-                'rooms as monthly_revenue' => fn ($query) => $query->where('status', 'occupied'),
+                'rooms as monthly_revenue' => fn ($query) => $query->where('rooms.status', 'occupied'),
             ], 'rent')
             ->orderBy('name')
             ->get();
@@ -27,7 +27,7 @@ class DashboardController extends Controller
             'revenueChart' => Analytics::revenueChart(),
             'occupancy' => Analytics::occupancyByProperty(),
             'activities' => Analytics::recentActivities(5),
-            'overduePayments' => Payment::query()->with(['tenantModel', 'propertyModel', 'roomModel'])->where('status', 'overdue')->orderBy('due_date')->get(),
+            'overduePayments' => Payment::query()->with(['tenantModel', 'propertyModel', 'roomModel'])->where('payments.status', 'overdue')->orderBy('due_date')->get(),
             'properties' => $properties,
         ]);
     }

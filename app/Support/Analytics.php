@@ -13,22 +13,22 @@ class Analytics
     public static function dashboardStats(): array
     {
         $totalRooms = Room::count();
-        $occupiedRooms = Room::where('status', 'occupied')->count();
+        $occupiedRooms = Room::where('rooms.status', 'occupied')->count();
 
         return [
             'total_properties' => Property::count(),
             'total_rooms' => $totalRooms,
             'occupied_rooms' => $occupiedRooms,
             'occupancy_rate' => $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 1) : 0.0,
-            'monthly_revenue' => (float) Room::where('status', 'occupied')->sum('rent'),
-            'collected_this_month' => (float) Payment::where('status', 'paid')
+            'monthly_revenue' => (float) Room::where('rooms.status', 'occupied')->sum('rent'),
+            'collected_this_month' => (float) Payment::where('payments.status', 'paid')
                 ->whereMonth('paid_date', now()->month)
                 ->whereYear('paid_date', now()->year)
                 ->sum('amount'),
-            'pending_payments' => (float) Payment::where('status', 'pending')->sum('amount'),
-            'overdue_amount' => (float) Payment::where('status', 'overdue')->sum('amount'),
-            'overdue_count' => Payment::where('status', 'overdue')->count(),
-            'active_tenants' => Tenant::where('status', 'active')->count(),
+            'pending_payments' => (float) Payment::where('payments.status', 'pending')->sum('amount'),
+            'overdue_amount' => (float) Payment::where('payments.status', 'overdue')->sum('amount'),
+            'overdue_count' => Payment::where('payments.status', 'overdue')->count(),
+            'active_tenants' => Tenant::where('tenants.status', 'active')->count(),
         ];
     }
 
@@ -38,11 +38,11 @@ class Analytics
 
         return [
             'total' => (clone $baseQuery)->count(),
-            'paid' => (clone $baseQuery)->where('status', 'paid')->count(),
-            'pending' => (clone $baseQuery)->where('status', 'pending')->count(),
-            'overdue' => (clone $baseQuery)->where('status', 'overdue')->count(),
-            'collected' => (float) (clone $baseQuery)->where('status', 'paid')->sum('amount'),
-            'outstanding' => (float) (clone $baseQuery)->whereIn('status', ['pending', 'overdue'])->sum('amount'),
+            'paid' => (clone $baseQuery)->where('payments.status', 'paid')->count(),
+            'pending' => (clone $baseQuery)->where('payments.status', 'pending')->count(),
+            'overdue' => (clone $baseQuery)->where('payments.status', 'overdue')->count(),
+            'collected' => (float) (clone $baseQuery)->where('payments.status', 'paid')->sum('amount'),
+            'outstanding' => (float) (clone $baseQuery)->whereIn('payments.status', ['pending', 'overdue'])->sum('amount'),
         ];
     }
 
@@ -58,7 +58,7 @@ class Analytics
                 ->whereYear('due_date', $month->year)
                 ->sum('amount');
 
-            $collected = Payment::where('status', 'paid')
+            $collected = Payment::where('payments.status', 'paid')
                 ->whereMonth('paid_date', $month->month)
                 ->whereYear('paid_date', $month->year)
                 ->sum('amount');
@@ -78,7 +78,7 @@ class Analytics
         return Property::query()
             ->withCount([
                 'rooms',
-                'rooms as occupied_rooms' => fn ($query) => $query->where('status', 'occupied'),
+                'rooms as occupied_rooms' => fn ($query) => $query->where('rooms.status', 'occupied'),
             ])
             ->orderBy('name')
             ->get()
