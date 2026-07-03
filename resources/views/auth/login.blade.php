@@ -7,7 +7,7 @@
         <div class="mb-8">
             <p class="text-sm font-semibold uppercase tracking-[0.3em] text-brand-600">Welcome back</p>
             <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">Sign in to Canzana</h2>
-            <p class="mt-2 text-sm text-slate-500">Use the seeded admin account or your own registered user.</p>
+            <p class="mt-2 text-sm text-slate-500">Use the admin account: admin@canzana.test / password</p>
         </div>
 
         <form method="POST" action="{{ route('login.store') }}" class="space-y-4">
@@ -31,9 +31,5 @@
 
             <button type="submit" class="btn btn-primary w-full justify-center">Sign in</button>
         </form>
-
-        <p class="mt-6 text-center text-sm text-slate-500">
-            Need an account? <a href="{{ route('register') }}" class="font-semibold text-brand-600 hover:text-brand-700">Register</a>
-        </p>
     </div>
 @endsection
