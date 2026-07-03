@@ -2,19 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Data\MockData;
+use App\Models\Payment;
+use App\Models\Property;
+use App\Support\Analytics;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        $properties = Property::query()
+            ->withCount([
+                'buildings',
+                'rooms',
+                'rooms as occupied_rooms' => fn ($query) => $query->where('status', 'occupied'),
+            ])
+            ->withSum([
+                'rooms as monthly_revenue' => fn ($query) => $query->where('status', 'occupied'),
+            ], 'rent')
+            ->orderBy('name')
+            ->get();
+
         return view('dashboard.index', [
-            'stats' => MockData::dashboardStats(),
-            'revenueChart' => MockData::revenueChart(),
-            'occupancy' => MockData::occupancyByProperty(),
-            'activities' => array_slice(MockData::activities(), 0, 5),
-            'overduePayments' => array_filter(MockData::payments(), fn ($p) => $p['status'] === 'overdue'),
-            'properties' => MockData::properties(),
+            'stats' => Analytics::dashboardStats(),
+            'revenueChart' => Analytics::revenueChart(),
+            'occupancy' => Analytics::occupancyByProperty(),
+            'activities' => Analytics::recentActivities(5),
+            'overduePayments' => Payment::query()->with(['tenantModel', 'propertyModel', 'roomModel'])->where('status', 'overdue')->orderBy('due_date')->get(),
+            'properties' => $properties,
         ]);
     }
 }

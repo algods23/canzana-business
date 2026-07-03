@@ -4,10 +4,10 @@
 @section('page-title', 'Properties')
 
 @section('header-actions')
-    <button type="button" class="btn btn-primary">
+    <a href="{{ route('properties.create') }}" class="btn btn-primary">
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
         Add Property
-    </button>
+    </a>
 @endsection
 
 @section('content')

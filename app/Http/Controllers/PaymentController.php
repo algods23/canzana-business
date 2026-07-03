@@ -2,38 +2,106 @@
 
 namespace App\Http\Controllers;
 
-use App\Data\MockData;
+use App\Models\Property;
+use App\Models\Payment;
+use App\Models\Tenant;
+use App\Support\Analytics;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class PaymentController extends Controller
 {
+    public function create(): View
+    {
+        return view('payments.create', [
+            'payment' => new Payment(),
+            'tenants' => Tenant::query()->with(['propertyModel', 'roomModel'])->orderBy('name')->get(),
+            'properties' => Property::query()->orderBy('name')->get(),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'tenant_id' => ['required', 'exists:tenants,id'],
+            'amount' => ['required', 'numeric', 'min:0'],
+            'due_date' => ['required', 'date'],
+            'paid_date' => ['nullable', 'date'],
+            'status' => ['required', Rule::in(['pending', 'paid', 'overdue'])],
+            'method' => ['nullable', 'string', 'max:255'],
+            'reference' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $tenant = Tenant::with(['propertyModel', 'roomModel'])->findOrFail($validated['tenant_id']);
+
+        $validated['property_id'] = $tenant->property_id;
+        $validated['room_id'] = $tenant->room_id;
+        $validated['paid_date'] = $validated['status'] === 'paid' && empty($validated['paid_date']) ? now()->toDateString() : ($validated['paid_date'] ?? null);
+
+        Payment::create($validated);
+
+        return redirect()->route('payments.index')->with('success', 'Payment recorded.');
+    }
+
+    public function edit(Payment $payment): View
+    {
+        return view('payments.edit', [
+            'payment' => $payment,
+            'tenants' => Tenant::query()->with(['propertyModel', 'roomModel'])->orderBy('name')->get(),
+            'properties' => Property::query()->orderBy('name')->get(),
+        ]);
+    }
+
+    public function update(Request $request, Payment $payment): RedirectResponse
+    {
+        $validated = $request->validate([
+            'tenant_id' => ['required', 'exists:tenants,id'],
+            'amount' => ['required', 'numeric', 'min:0'],
+            'due_date' => ['required', 'date'],
+            'paid_date' => ['nullable', 'date'],
+            'status' => ['required', Rule::in(['pending', 'paid', 'overdue'])],
+            'method' => ['nullable', 'string', 'max:255'],
+            'reference' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $tenant = Tenant::with(['propertyModel', 'roomModel'])->findOrFail($validated['tenant_id']);
+
+        $validated['property_id'] = $tenant->property_id;
+        $validated['room_id'] = $tenant->room_id;
+        $validated['paid_date'] = $validated['status'] === 'paid' && empty($validated['paid_date']) ? now()->toDateString() : ($validated['paid_date'] ?? null);
+
+        $payment->update($validated);
+
+        return redirect()->route('payments.index')->with('success', 'Payment updated.');
+    }
+
+    public function destroy(Payment $payment): RedirectResponse
+    {
+        $payment->delete();
+
+        return redirect()->route('payments.index')->with('success', 'Payment deleted.');
+    }
+
     public function index(Request $request)
     {
-        $payments = MockData::payments();
+        $payments = Payment::query()->with(['tenantModel', 'roomModel', 'propertyModel']);
 
         if ($status = $request->get('status')) {
-            $payments = array_filter($payments, fn ($p) => $p['status'] === $status);
+            $payments->where('status', $status);
         }
 
         if ($search = $request->get('search')) {
-            $payments = array_filter($payments, fn ($p) =>
-                str_contains(strtolower($p['tenant']), strtolower($search)) ||
-                str_contains(strtolower($p['unit']), strtolower($search))
-            );
+            $payments->where(function ($query) use ($search): void {
+                $query->whereHas('tenantModel', fn ($tenantQuery) => $tenantQuery->where('name', 'like', '%'.$search.'%'))
+                    ->orWhereHas('roomModel', fn ($roomQuery) => $roomQuery->where('unit', 'like', '%'.$search.'%'));
+            });
         }
 
-        $stats = [
-            'total' => count(MockData::payments()),
-            'paid' => count(array_filter(MockData::payments(), fn ($p) => $p['status'] === 'paid')),
-            'pending' => count(array_filter(MockData::payments(), fn ($p) => $p['status'] === 'pending')),
-            'overdue' => count(array_filter(MockData::payments(), fn ($p) => $p['status'] === 'overdue')),
-            'collected' => array_sum(array_column(array_filter(MockData::payments(), fn ($p) => $p['status'] === 'paid'), 'amount')),
-            'outstanding' => array_sum(array_column(array_filter(MockData::payments(), fn ($p) => in_array($p['status'], ['pending', 'overdue'])), 'amount')),
-        ];
-
         return view('payments.index', [
-            'payments' => array_values($payments),
-            'stats' => $stats,
+            'payments' => $payments->orderByDesc('due_date')->get(),
+            'stats' => Analytics::paymentStats(),
             'filters' => $request->only(['search', 'status']),
         ]);
     }

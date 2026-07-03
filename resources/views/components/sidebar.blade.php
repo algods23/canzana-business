@@ -41,25 +41,27 @@
         <div class="mx-1 rounded-lg bg-sidebar-hover/50 p-3">
             <div class="flex items-center justify-between text-xs">
                 <span class="text-slate-400">Occupancy</span>
-                <span class="font-semibold text-brand-400">85.1%</span>
+                <span class="font-semibold text-brand-400">{{ number_format($sidebarStats['occupancy_rate'] ?? 0, 1) }}%</span>
             </div>
             <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-700">
-                <div class="h-full w-[85.1%] rounded-full bg-brand-500"></div>
+                <div class="h-full rounded-full bg-brand-500" style="width: {{ $sidebarStats['occupancy_rate'] ?? 0 }}%"></div>
             </div>
             <div class="mt-3 flex items-center justify-between text-xs">
                 <span class="text-slate-400">Overdue</span>
-                <span class="font-semibold text-rose-400">3 accounts</span>
+                <span class="font-semibold text-rose-400">{{ $sidebarStats['overdue_count'] ?? 0 }} accounts</span>
             </div>
         </div>
     </nav>
 
     <div class="border-t border-slate-700/50 p-4">
-        <div class="flex items-center gap-3">
-            <div class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white">AU</div>
-            <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-medium text-white">Admin User</p>
-                <p class="truncate text-xs text-slate-400">Property Manager</p>
+        @auth
+            <div class="flex items-center gap-3">
+                <div class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</div>
+                <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-medium text-white">{{ auth()->user()->name }}</p>
+                    <p class="truncate text-xs text-slate-400">{{ ucfirst(auth()->user()->role) }}</p>
+                </div>
             </div>
-        </div>
+        @endauth
     </div>
 </aside>

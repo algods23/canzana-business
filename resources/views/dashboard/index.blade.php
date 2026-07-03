@@ -43,25 +43,8 @@
                 </select>
             </div>
             <div class="p-5">
-                <div class="flex items-end justify-between gap-2 sm:gap-4" style="height: 200px;">
-                    @foreach($revenueChart as $month)
-                        @php
-                            $maxExpected = max(array_column($revenueChart, 'expected'));
-                            $collectedHeight = ($month['collected'] / $maxExpected) * 100;
-                            $expectedHeight = ($month['expected'] / $maxExpected) * 100;
-                        @endphp
-                        <div class="flex flex-1 flex-col items-center gap-1">
-                            <div class="relative flex w-full items-end justify-center gap-1" style="height: 160px;">
-                                <div class="w-3 rounded-t bg-slate-200 sm:w-4" style="height: {{ $expectedHeight }}%" title="Expected"></div>
-                                <div class="w-3 rounded-t bg-brand-500 sm:w-4" style="height: {{ $collectedHeight }}%" title="Collected"></div>
-                            </div>
-                            <span class="text-[10px] font-medium text-slate-500 sm:text-xs">{{ $month['month'] }}</span>
-                        </div>
-                    @endforeach
-                </div>
-                <div class="mt-4 flex items-center justify-center gap-6 text-xs text-slate-500">
-                    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded bg-brand-500"></span> Collected</span>
-                    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded bg-slate-200"></span> Expected</span>
+                <div class="rounded-2xl border border-border bg-slate-50 p-4">
+                    <canvas id="revenueChart" height="120"></canvas>
                 </div>
             </div>
         </div>
@@ -72,18 +55,10 @@
                 <h3 class="font-semibold text-slate-900">Occupancy by Property</h3>
                 <p class="text-xs text-slate-500">Current occupancy rates</p>
             </div>
-            <div class="space-y-4 p-5">
-                @foreach($occupancy as $item)
-                    <div>
-                        <div class="mb-1.5 flex items-center justify-between text-sm">
-                            <span class="font-medium text-slate-700">{{ $item['name'] }}</span>
-                            <span class="font-semibold text-brand-700">{{ $item['rate'] }}%</span>
-                        </div>
-                        <div class="h-2 overflow-hidden rounded-full bg-slate-100">
-                            <div class="h-full rounded-full bg-brand-500 transition-all" style="width: {{ $item['rate'] }}%"></div>
-                        </div>
-                    </div>
-                @endforeach
+            <div class="p-5">
+                <div class="rounded-2xl border border-border bg-slate-50 p-4">
+                    <canvas id="occupancyChart" height="220"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -156,3 +131,78 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script>
+        const revenueData = @json($revenueChart);
+        const revenueCtx = document.getElementById('revenueChart');
+
+        if (revenueCtx) {
+            new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: revenueData.map((entry) => entry.month),
+                    datasets: [
+                        {
+                            label: 'Collected',
+                            data: revenueData.map((entry) => entry.collected),
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                            fill: true,
+                            tension: 0.35,
+                        },
+                        {
+                            label: 'Expected',
+                            data: revenueData.map((entry) => entry.expected),
+                            borderColor: '#94a3b8',
+                            backgroundColor: 'rgba(148, 163, 184, 0.10)',
+                            fill: true,
+                            tension: 0.35,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => '₱' + Number(value).toLocaleString(),
+                            },
+                        },
+                    },
+                },
+            });
+        }
+
+        const occupancyCtx = document.getElementById('occupancyChart');
+        const occupancyData = @json($occupancy);
+
+        if (occupancyCtx) {
+            new Chart(occupancyCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: occupancyData.map((entry) => entry.name),
+                    datasets: [{
+                        data: occupancyData.map((entry) => entry.rate),
+                        backgroundColor: ['#2563eb', '#0f766e', '#ea580c', '#be123c', '#7c3aed'],
+                        borderWidth: 0,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: {
+                        legend: { position: 'bottom' },
+                    },
+                },
+            });
+        }
+    </script>
+@endpush

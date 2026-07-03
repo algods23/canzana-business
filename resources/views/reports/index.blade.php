@@ -51,14 +51,8 @@
                         <p class="mt-1 text-xl font-bold text-emerald-900">₱{{ number_format($stats['collected_this_month']) }}</p>
                     </div>
                 </div>
-                <div class="flex items-end justify-between gap-2" style="height: 160px;">
-                    @foreach($revenueChart as $month)
-                        @php $max = max(array_column($revenueChart, 'expected')); @endphp
-                        <div class="flex flex-1 flex-col items-center">
-                            <div class="w-full rounded-t bg-brand-500" style="height: {{ ($month['collected'] / $max) * 100 }}%"></div>
-                            <span class="mt-1 text-[10px] text-slate-500">{{ $month['month'] }}</span>
-                        </div>
-                    @endforeach
+                <div class="rounded-2xl border border-border bg-slate-50 p-4">
+                    <canvas id="reportRevenueChart" height="140"></canvas>
                 </div>
             </div>
         </div>
@@ -68,18 +62,10 @@
             <div class="border-b border-border px-5 py-4">
                 <h3 class="font-semibold text-slate-900">Occupancy Breakdown</h3>
             </div>
-            <div class="p-5 space-y-4">
-                @foreach($properties as $property)
-                    <div>
-                        <div class="mb-1 flex justify-between text-sm">
-                            <span class="font-medium text-slate-700">{{ $property['name'] }}</span>
-                            <span class="text-slate-500">{{ $property['occupied_rooms'] }}/{{ $property['rooms_count'] }} rooms</span>
-                        </div>
-                        <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                            <div class="h-full rounded-full bg-brand-500" style="width: {{ $property['occupancy_rate'] }}%"></div>
-                        </div>
-                    </div>
-                @endforeach
+            <div class="p-5">
+                <div class="rounded-2xl border border-border bg-slate-50 p-4">
+                    <canvas id="reportOccupancyChart" height="220"></canvas>
+                </div>
             </div>
         </div>
 
@@ -117,3 +103,70 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script>
+        const reportRevenue = @json($revenueChart);
+        const reportRevenueCtx = document.getElementById('reportRevenueChart');
+
+        if (reportRevenueCtx) {
+            new Chart(reportRevenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: reportRevenue.map((entry) => entry.month),
+                    datasets: [
+                        {
+                            label: 'Collected',
+                            data: reportRevenue.map((entry) => entry.collected),
+                            backgroundColor: '#2563eb',
+                        },
+                        {
+                            label: 'Expected',
+                            data: reportRevenue.map((entry) => entry.expected),
+                            backgroundColor: '#94a3b8',
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => '₱' + Number(value).toLocaleString(),
+                            },
+                        },
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                    },
+                },
+            });
+        }
+
+        const reportOccupancyCtx = document.getElementById('reportOccupancyChart');
+        const reportOccupancy = @json($properties->map(fn ($property) => ['name' => $property['name'], 'rate' => $property['occupancy_rate']])->values());
+
+        if (reportOccupancyCtx) {
+            new Chart(reportOccupancyCtx, {
+                type: 'polarArea',
+                data: {
+                    labels: reportOccupancy.map((entry) => entry.name),
+                    datasets: [{
+                        data: reportOccupancy.map((entry) => entry.rate),
+                        backgroundColor: ['#2563eb', '#0f766e', '#ea580c', '#be123c', '#7c3aed'],
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                    },
+                },
+            });
+        }
+    </script>
+@endpush

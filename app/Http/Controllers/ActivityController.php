@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Data\MockData;
+use App\Support\Analytics;
 use Illuminate\Http\Request;
 
 class ActivityController extends Controller
 {
     public function index(Request $request)
     {
-        $activities = MockData::activities();
+        $activities = collect(Analytics::recentActivities(20));
 
         if ($type = $request->get('type')) {
-            $activities = array_filter($activities, fn ($a) => $a['type'] === $type);
+            $activities = $activities->where('type', $type);
         }
 
         return view('activity.index', [
-            'activities' => array_values($activities),
+            'activities' => $activities->values(),
             'filters' => $request->only(['type']),
         ]);
     }

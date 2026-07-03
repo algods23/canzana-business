@@ -10,7 +10,7 @@
 @endsection
 
 @section('header-actions')
-    <button type="button" class="btn btn-secondary">Edit Property</button>
+    <a href="{{ route('properties.edit', $property) }}" class="btn btn-secondary">Edit Property</a>
     <button type="button" class="btn btn-primary">Add Building</button>
 @endsection
 
