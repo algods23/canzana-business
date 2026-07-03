@@ -36,7 +36,7 @@ class Room extends Model
 
     public function currentTenant(): HasOne
     {
-        return $this->hasOne(Tenant::class)->where('status', 'active');
+        return $this->hasOne(Tenant::class)->where('tenants.status', 'active');
     }
 
     public function getTenantAttribute(): ?string

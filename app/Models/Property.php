@@ -63,11 +63,11 @@ class Property extends Model
 
     public function getOccupiedRoomsAttribute(): int
     {
-        return (int) ($this->attributes['occupied_rooms'] ?? $this->rooms()->where('status', 'occupied')->count());
+        return (int) ($this->attributes['occupied_rooms'] ?? $this->rooms()->where('rooms.status', 'occupied')->count());
     }
 
     public function getMonthlyRevenueAttribute(): float
     {
-        return (float) ($this->attributes['monthly_revenue'] ?? $this->rooms()->where('status', 'occupied')->sum('rent'));
+        return (float) ($this->attributes['monthly_revenue'] ?? $this->rooms()->where('rooms.status', 'occupied')->sum('rent'));
     }
 }

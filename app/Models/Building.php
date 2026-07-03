@@ -35,7 +35,7 @@ class Building extends Model
 
     public function getOccupiedAttribute(): int
     {
-        return (int) ($this->attributes['occupied'] ?? $this->rooms()->where('status', 'occupied')->count());
+        return (int) ($this->attributes['occupied'] ?? $this->rooms()->where('rooms.status', 'occupied')->count());
     }
 
     public function getOccupancyRateAttribute(): float

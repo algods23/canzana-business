@@ -11,7 +11,7 @@
 
 @section('header-actions')
     <a href="{{ route('properties.edit', $property) }}" class="btn btn-secondary">Edit Property</a>
-    <button type="button" class="btn btn-primary">Add Building</button>
+    <a href="{{ route('properties.buildings.create', $property) }}" class="btn btn-primary">Add Building</a>
 @endsection
 
 @section('content')

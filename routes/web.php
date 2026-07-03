@@ -29,6 +29,8 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/{property}/edit', [PropertyController::class, 'edit'])->middleware('role:admin,manager')->name('edit');
         Route::put('/{property}', [PropertyController::class, 'update'])->middleware('role:admin,manager')->name('update');
         Route::delete('/{property}', [PropertyController::class, 'destroy'])->middleware('role:admin,manager')->name('destroy');
+        Route::get('/{property}/buildings/create', [PropertyController::class, 'createBuilding'])->middleware('role:admin,manager')->name('buildings.create');
+        Route::post('/{property}/buildings', [PropertyController::class, 'storeBuilding'])->middleware('role:admin,manager')->name('buildings.store');
         Route::get('/{property}/buildings/{building}', [PropertyController::class, 'building'])->name('building');
         Route::get('/{property}/buildings/{building}/rooms/{room}', [PropertyController::class, 'room'])->name('room');
     });

@@ -113,6 +113,30 @@ class PropertyController extends Controller
         ]);
     }
 
+    public function createBuilding(Property $property): View
+    {
+        return view('properties.buildings.create', [
+            'property' => $property,
+            'building' => new Building([
+                'floors' => 1,
+                'status' => 'active',
+            ]),
+        ]);
+    }
+
+    public function storeBuilding(Request $request, Property $property): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'floors' => ['required', 'integer', 'min:1', 'max:200'],
+            'status' => ['required', 'in:active,maintenance'],
+        ]);
+
+        $property->buildings()->create($validated);
+
+        return redirect()->route('properties.show', $property)->with('success', 'Building added.');
+    }
+
     public function building(Property $property, Building $building)
     {
         abort_unless($building->property_id === $property->id, 404);
