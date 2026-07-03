@@ -1,0 +1,65 @@
+@php
+    $navItems = [
+        ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'dashboard'],
+        ['route' => 'properties.index', 'label' => 'Properties', 'icon' => 'building'],
+        ['route' => 'tenants.index', 'label' => 'Tenants', 'icon' => 'users'],
+        ['route' => 'payments.index', 'label' => 'Payments', 'icon' => 'payment'],
+        ['route' => 'reports.index', 'label' => 'Reports', 'icon' => 'chart'],
+        ['route' => 'activity.index', 'label' => 'Activity Log', 'icon' => 'activity'],
+    ];
+@endphp
+
+<aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col bg-sidebar transition-transform duration-300 lg:translate-x-0">
+    <div class="flex h-16 items-center justify-between border-b border-slate-700/50 px-5">
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
+            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600">
+                <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                </svg>
+            </div>
+            <div>
+                <span class="block text-sm font-bold text-white">Canzana</span>
+                <span class="block text-[10px] font-medium uppercase tracking-widest text-brand-400">Business</span>
+            </div>
+        </a>
+        <button id="sidebar-close" type="button" class="rounded-lg p-1.5 text-slate-400 hover:bg-sidebar-hover hover:text-white lg:hidden">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+        </button>
+    </div>
+
+    <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4 scrollbar-thin">
+        <p class="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Main Menu</p>
+        @foreach($navItems as $item)
+            @php $active = request()->routeIs($item['route'] . '*') || request()->routeIs($item['route']); @endphp
+            <a href="{{ route($item['route']) }}" class="sidebar-link {{ $active ? 'sidebar-link-active' : '' }}">
+                @include('components.icons.' . $item['icon'], ['class' => 'h-5 w-5 shrink-0'])
+                {{ $item['label'] }}
+            </a>
+        @endforeach
+
+        <p class="mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Quick Stats</p>
+        <div class="mx-1 rounded-lg bg-sidebar-hover/50 p-3">
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-400">Occupancy</span>
+                <span class="font-semibold text-brand-400">85.1%</span>
+            </div>
+            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-700">
+                <div class="h-full w-[85.1%] rounded-full bg-brand-500"></div>
+            </div>
+            <div class="mt-3 flex items-center justify-between text-xs">
+                <span class="text-slate-400">Overdue</span>
+                <span class="font-semibold text-rose-400">3 accounts</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="border-t border-slate-700/50 p-4">
+        <div class="flex items-center gap-3">
+            <div class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white">AU</div>
+            <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-medium text-white">Admin User</p>
+                <p class="truncate text-xs text-slate-400">Property Manager</p>
+            </div>
+        </div>
+    </div>
+</aside>
