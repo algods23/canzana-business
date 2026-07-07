@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PropertyController;
@@ -9,7 +10,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route('dashboard'));
+Route::get('/', fn () => redirect()->route('businesses.select'));
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -19,6 +20,11 @@ Route::middleware('guest')->group(function (): void {
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
 Route::middleware('auth')->group(function (): void {
+    Route::get('/businesses', [BusinessController::class, 'index'])->name('businesses.select');
+    Route::get('/businesses/create', [BusinessController::class, 'create'])->middleware('role:admin,manager')->name('businesses.create');
+    Route::post('/businesses', [BusinessController::class, 'store'])->middleware('role:admin,manager')->name('businesses.store');
+    Route::get('/businesses/{business}/open', [BusinessController::class, 'open'])->name('businesses.open');
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::prefix('properties')->name('properties.')->group(function (): void {

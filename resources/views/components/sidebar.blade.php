@@ -1,5 +1,6 @@
 @php
     $navItems = [
+        ['route' => 'businesses.select', 'label' => 'Select Business', 'icon' => 'building'],
         ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'dashboard'],
         ['route' => 'properties.index', 'label' => 'Properties', 'icon' => 'building'],
         ['route' => 'tenants.index', 'label' => 'Tenants', 'icon' => 'users'],
