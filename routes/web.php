@@ -50,6 +50,8 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/{tenant}/edit', [TenantController::class, 'edit'])->middleware('role:admin,manager')->name('edit');
         Route::put('/{tenant}', [TenantController::class, 'update'])->middleware('role:admin,manager')->name('update');
         Route::delete('/{tenant}', [TenantController::class, 'destroy'])->middleware('role:admin,manager')->name('destroy');
+        Route::post('/{tenant}/contract', [TenantController::class, 'uploadContract'])->middleware('role:admin,manager')->name('contract.upload');
+        Route::get('/{tenant}/contract', [TenantController::class, 'downloadContract'])->middleware('role:admin,manager')->name('contract.download');
     });
 
     Route::prefix('payments')->name('payments.')->group(function (): void {

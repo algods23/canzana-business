@@ -185,8 +185,9 @@ class PropertyController extends Controller
             'property' => $property,
             'building' => $building,
             'room' => $room,
+            'tenant' => $tenant,
             'payments' => $tenant ? $tenant->payments()->latest('due_date')->take(4)->get() : collect(),
-            'activities' => Analytics::recentActivities(3),
+            'activities' => Analytics::recentActivities(3, $room->id),
         ]);
     }
 
@@ -220,6 +221,35 @@ class PropertyController extends Controller
         $building->rooms()->create($validated);
 
         return redirect()->route('properties.building', [$property, $building])->with('success', 'Room added.');
+    }
+
+    public function editRoom(Property $property, Building $building, Room $room): View
+    {
+        abort_unless($building->property_id === $property->id && $room->building_id === $building->id, 404);
+
+        return view('properties.rooms.edit', [
+            'property' => $property,
+            'building' => $building,
+            'room' => $room,
+        ]);
+    }
+
+    public function updateRoom(Request $request, Property $property, Building $building, Room $room): RedirectResponse
+    {
+        abort_unless($building->property_id === $property->id && $room->building_id === $building->id, 404);
+
+        $validated = $request->validate([
+            'unit' => ['required', 'string', 'max:50'],
+            'floor' => ['required', 'integer', 'min:1', 'max:'.$building->floors],
+            'type' => ['required', 'string', 'max:50'],
+            'size_sqm' => ['required', 'numeric', 'min:1', 'max:10000'],
+            'rent' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'status' => ['required', 'in:vacant,occupied,maintenance'],
+        ]);
+
+        $room->update($validated);
+
+        return redirect()->route('properties.room', [$property, $building, $room])->with('success', 'Room updated.');
     }
     public function assignTenant(Request $request, Property $property, Building $building, Room $room): RedirectResponse
     {

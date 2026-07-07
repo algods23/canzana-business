@@ -89,13 +89,20 @@ class Analytics
             ->all();
     }
 
-    public static function recentActivities(int $limit = 5): array
+    public static function recentActivities(int $limit = 5, ?int $roomId = null): array
     {
         $items = collect();
 
+        $paymentQuery = Payment::query()->with(['tenantModel', 'propertyModel', 'roomModel']);
+        $tenantQuery = Tenant::query()->with(['propertyModel', 'roomModel']);
+
+        if ($roomId) {
+            $paymentQuery->where('room_id', $roomId);
+            $tenantQuery->where('room_id', $roomId);
+        }
+
         $items = $items->merge(
-            Payment::query()
-                ->with(['tenantModel', 'propertyModel', 'roomModel'])
+            $paymentQuery
                 ->latest('updated_at')
                 ->take($limit)
                 ->get()
@@ -119,8 +126,7 @@ class Analytics
         );
 
         $items = $items->merge(
-            Tenant::query()
-                ->with(['propertyModel', 'roomModel'])
+            $tenantQuery
                 ->latest('updated_at')
                 ->take($limit)
                 ->get()
@@ -137,6 +143,6 @@ class Analytics
                 })
         );
 
-        return $items->take($limit)->values()->all();
+        return $items->sortByDesc('time')->take($limit)->values()->all();
     }
 }

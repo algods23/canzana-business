@@ -134,4 +134,38 @@ class TenantController extends Controller
             'activities' => Analytics::recentActivities(4),
         ]);
     }
+
+    public function uploadContract(Request $request, Tenant $tenant)
+    {
+        $request->validate([
+            'contract' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'], // Max 10MB
+        ]);
+
+        $file = $request->file('contract');
+        $path = $file->store('contracts', 'public');
+        $name = $file->getClientOriginalName();
+
+        if ($tenant->contract_path) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($tenant->contract_path);
+        }
+
+        $tenant->update([
+            'contract_path' => $path,
+            'contract_name' => $name,
+        ]);
+
+        return back()->with('success', 'Contract uploaded successfully.');
+    }
+
+    public function downloadContract(Tenant $tenant)
+    {
+        if (! $tenant->contract_path || ! \Illuminate\Support\Facades\Storage::disk('public')->exists($tenant->contract_path)) {
+            abort(404, 'Contract file not found.');
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->download(
+            $tenant->contract_path,
+            $tenant->contract_name ?? 'contract.pdf'
+        );
+    }
 }

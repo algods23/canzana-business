@@ -52,6 +52,7 @@
         <div class="grid grid-cols-1 gap-3 p-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             @foreach($rooms as $room)
                 @php
+                    $displayStatus = $room['tenant'] ? $room['status'] : ($room['status'] === 'occupied' ? 'vacant' : $room['status']);
                     $statusColors = [
                         'occupied' => 'border-emerald-200 bg-emerald-50/50 hover:border-emerald-300',
                         'vacant' => 'border-slate-200 bg-slate-50/50 hover:border-slate-300',
@@ -59,13 +60,13 @@
                     ];
                 @endphp
                 <a href="{{ route('properties.room', [$property['id'], $building['id'], $room['id']]) }}"
-                   class="rounded-xl border p-4 transition-all hover:shadow-md {{ $statusColors[$room['status']] ?? $statusColors['vacant'] }}">
+                   class="rounded-xl border p-4 transition-all hover:shadow-md {{ $statusColors[$displayStatus] ?? $statusColors['vacant'] }}">
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="text-lg font-bold text-slate-900">{{ $room['unit'] }}</p>
                             <p class="text-xs text-slate-500">Floor {{ $room['floor'] }} · {{ $room['type'] }}</p>
                         </div>
-                        <x-status-badge :status="$room['status']" />
+                        <x-status-badge :status="$displayStatus" />
                     </div>
                     <div class="mt-3 space-y-1 text-sm">
                         <p class="text-slate-600">{{ $room['size_sqm'] }} sqm</p>

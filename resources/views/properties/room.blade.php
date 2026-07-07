@@ -11,7 +11,9 @@
     <a href="{{ route('properties.building', [$property['id'], $building['id']]) }}" class="hover:text-brand-600">{{ $building['name'] }}</a>
     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
     <span class="text-slate-700">{{ $room['unit'] }}</span>
-@endsection
+@php
+    $displayStatus = $room['tenant'] ? $room['status'] : ($room['status'] === 'occupied' ? 'vacant' : $room['status']);
+@endphp
 
 @section('header-actions')
     <a href="{{ route('properties.rooms.edit', [$property['id'], $building['id'], $room['id']]) }}" class="btn btn-secondary">Edit Unit</a>
@@ -26,7 +28,7 @@
                     <div>
                         <div class="flex items-center gap-3">
                             <h2 class="text-2xl font-bold text-slate-900">{{ $room['unit'] }}</h2>
-                            <x-status-badge :status="$room['status']" />
+                            <x-status-badge :status="$displayStatus" />
                         </div>
                         <p class="mt-1 text-sm text-slate-500">{{ $building['name'] }} · {{ $property['name'] }}</p>
                     </div>
@@ -139,7 +141,7 @@
                             <dd class="font-medium text-emerald-600">₱0.00</dd>
                         </div>
                     </dl>
-                    <button type="button" class="btn btn-secondary mt-5 w-full">View Tenant Profile</button>
+                    <a href="{{ route('tenants.show', $tenant) }}" class="btn btn-secondary mt-5 w-full">View Tenant Profile</a>
                 </div>
             @else
                 <div class="panel p-6 text-center">
@@ -147,8 +149,8 @@
                         @include('components.icons.user', ['class' => 'h-7 w-7 text-slate-400'])
                     </div>
                     <h3 class="mt-3 font-semibold text-slate-900">No Tenant</h3>
-                    <p class="mt-1 text-sm text-slate-500">This unit is currently {{ $room['status'] }}</p>
-                    @if($room['status'] === 'vacant')
+                    <p class="mt-1 text-sm text-slate-500">This unit is currently {{ $displayStatus }}</p>
+                    @if($displayStatus === 'vacant')
                         <div class="mt-4 flex flex-col gap-3">
                             <a href="{{ route('tenants.create', ['property_id' => $property['id'], 'room_id' => $room['id']]) }}" class="btn btn-primary w-full">Create New Tenant</a>
                             <div class="border-t border-slate-200 pt-3 text-left">
@@ -172,21 +174,29 @@
             {{-- Rental Contract --}}
             <div class="panel p-6">
                 <h3 class="font-semibold text-slate-900">Rental Contract</h3>
-                @if($room['tenant'])
+                @if($tenant)
                     <div class="mt-4 space-y-3">
-                        <div class="flex items-center justify-between rounded-lg border border-border p-3">
-                            <div class="flex items-center gap-3">
-                                <svg class="h-8 w-8 text-brand-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
-                                <div>
-                                    <p class="text-sm font-medium text-slate-900">Lease Agreement 2024</p>
-                                    <p class="text-xs text-slate-500">PDF · 245 KB</p>
+                        @if($tenant->contract_path)
+                            <div class="flex items-center justify-between rounded-lg border border-border p-3">
+                                <div class="flex items-center gap-3">
+                                    <svg class="h-8 w-8 text-brand-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                                    <div class="overflow-hidden">
+                                        <p class="text-sm font-medium text-slate-900 truncate">{{ $tenant->contract_name ?? 'Contract Document' }}</p>
+                                        <p class="text-xs text-slate-500">Document</p>
+                                    </div>
                                 </div>
+                                <a href="{{ route('tenants.contract.download', $tenant) }}" target="_blank" class="text-brand-600 hover:text-brand-700">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                </a>
                             </div>
-                            <button type="button" class="text-brand-600 hover:text-brand-700">
-                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                            </button>
-                        </div>
-                        <button type="button" class="btn btn-secondary w-full text-xs">Upload New Contract</button>
+                        @else
+                            <p class="text-sm text-slate-500">No contract uploaded yet.</p>
+                        @endif
+                        <form method="POST" action="{{ route('tenants.contract.upload', $tenant) }}" enctype="multipart/form-data" class="flex flex-col gap-2 mt-2">
+                            @csrf
+                            <input type="file" name="contract" accept=".pdf,.doc,.docx" class="block w-full text-xs text-slate-500 file:mr-4 file:rounded-md file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-brand-700 hover:file:bg-brand-100" required>
+                            <button type="submit" class="btn btn-secondary w-full text-xs">Upload Contract</button>
+                        </form>
                     </div>
                 @else
                     <p class="mt-3 text-sm text-slate-500">No contract on file. Assign a tenant to create a lease.</p>

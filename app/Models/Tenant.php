@@ -23,6 +23,8 @@ class Tenant extends Model
         'rent',
         'balance',
         'status',
+        'contract_path',
+        'contract_name',
     ];
 
     protected function casts(): array
