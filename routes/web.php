@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/{property}/buildings/{building}/rooms/create', [PropertyController::class, 'createRoom'])->middleware('role:admin,manager')->name('rooms.create');
         Route::post('/{property}/buildings/{building}/rooms', [PropertyController::class, 'storeRoom'])->middleware('role:admin,manager')->name('rooms.store');
         Route::get('/{property}/buildings/{building}/rooms/{room}', [PropertyController::class, 'room'])->name('room');
+        Route::get('/{property}/buildings/{building}/rooms/{room}/edit', [PropertyController::class, 'editRoom'])->middleware('role:admin,manager')->name('rooms.edit');
+        Route::put('/{property}/buildings/{building}/rooms/{room}', [PropertyController::class, 'updateRoom'])->middleware('role:admin,manager')->name('rooms.update');
+        Route::post('/{property}/buildings/{building}/rooms/{room}/assign', [PropertyController::class, 'assignTenant'])->middleware('role:admin,manager')->name('rooms.assign');
     });
 
     Route::prefix('tenants')->name('tenants.')->group(function (): void {

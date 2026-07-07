@@ -221,4 +221,23 @@ class PropertyController extends Controller
 
         return redirect()->route('properties.building', [$property, $building])->with('success', 'Room added.');
     }
+    public function assignTenant(Request $request, Property $property, Building $building, Room $room): RedirectResponse
+    {
+        abort_unless($building->property_id === $property->id && $room->building_id === $building->id, 404);
+
+        $validated = $request->validate([
+            'tenant_id' => ['required', 'exists:tenants,id'],
+        ]);
+
+        $tenant = \App\Models\Tenant::findOrFail($validated['tenant_id']);
+        
+        if ($tenant->room_id && $tenant->room_id !== $room->id) {
+            \App\Models\Room::whereKey($tenant->room_id)->update(['status' => 'vacant']);
+        }
+        
+        $tenant->update(['property_id' => $property->id, 'room_id' => $room->id]);
+        $room->update(['status' => 'occupied']);
+
+        return redirect()->route('properties.room', [$property, $building, $room])->with('success', 'Tenant assigned to unit.');
+    }
 }
