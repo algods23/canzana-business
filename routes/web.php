@@ -32,6 +32,8 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/{property}/buildings/create', [PropertyController::class, 'createBuilding'])->middleware('role:admin,manager')->name('buildings.create');
         Route::post('/{property}/buildings', [PropertyController::class, 'storeBuilding'])->middleware('role:admin,manager')->name('buildings.store');
         Route::get('/{property}/buildings/{building}', [PropertyController::class, 'building'])->name('building');
+        Route::get('/{property}/buildings/{building}/edit', [PropertyController::class, 'editBuilding'])->middleware('role:admin,manager')->name('buildings.edit');
+        Route::put('/{property}/buildings/{building}', [PropertyController::class, 'updateBuilding'])->middleware('role:admin,manager')->name('buildings.update');
         Route::get('/{property}/buildings/{building}/rooms/create', [PropertyController::class, 'createRoom'])->middleware('role:admin,manager')->name('rooms.create');
         Route::post('/{property}/buildings/{building}/rooms', [PropertyController::class, 'storeRoom'])->middleware('role:admin,manager')->name('rooms.store');
         Route::get('/{property}/buildings/{building}/rooms/{room}', [PropertyController::class, 'room'])->name('room');

@@ -13,7 +13,7 @@
     <div>
         <label class="mb-1.5 block text-sm font-medium text-slate-700" for="type">Room type</label>
         <select id="type" name="type" class="input-field w-full" required>
-            @foreach(['Studio', '1-Bedroom', '2-Bedroom', '3-Bedroom', 'Office', 'Retail', 'Warehouse', 'Penthouse'] as $type)
+            @foreach(['Studio', '1-Bedroom', '2-Bedroom', '3-Bedroom'] as $type)
                 <option value="{{ $type }}" @selected(old('type', $room->type ?? '') === $type)>{{ $type }}</option>
             @endforeach
         </select>
@@ -30,12 +30,6 @@
         @error('rent')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
     </div>
     <div>
-        <label class="mb-1.5 block text-sm font-medium text-slate-700" for="status">Status</label>
-        <select id="status" name="status" class="input-field w-full" required>
-            @foreach(['vacant', 'occupied', 'maintenance'] as $status)
-                <option value="{{ $status }}" @selected(old('status', $room->status ?? 'vacant') === $status)>{{ ucfirst($status) }}</option>
-            @endforeach
-        </select>
-        @error('status')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+        <input type="hidden" id="status" name="status" value="{{ old('status', $room->status ?? 'vacant') }}">
     </div>
 </div>

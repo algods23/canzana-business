@@ -148,6 +148,31 @@ class PropertyController extends Controller
         ]);
     }
 
+    public function editBuilding(Property $property, Building $building): View
+    {
+        abort_unless($building->property_id === $property->id, 404);
+
+        return view('properties.buildings.edit', [
+            'property' => $property,
+            'building' => $building,
+        ]);
+    }
+
+    public function updateBuilding(Request $request, Property $property, Building $building): RedirectResponse
+    {
+        abort_unless($building->property_id === $property->id, 404);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'floors' => ['required', 'integer', 'min:1', 'max:200'],
+            'status' => ['required', 'in:active,maintenance'],
+        ]);
+
+        $building->update($validated);
+
+        return redirect()->route('properties.building', [$property, $building])->with('success', 'Building updated.');
+    }
+
     public function room(Property $property, Building $building, Room $room)
     {
         abort_unless($building->property_id === $property->id && $room->building_id === $building->id, 404);
