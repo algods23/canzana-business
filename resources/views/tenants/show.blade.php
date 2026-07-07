@@ -58,6 +58,7 @@
                                 <th>Due Date</th>
                                 <th>Amount</th>
                                 <th>Paid Date</th>
+                                <th>Method</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -71,11 +72,12 @@
                                     <td>{{ \Carbon\Carbon::parse($payment['due_date'])->format('M d, Y') }}</td>
                                     <td class="font-medium">₱{{ number_format($payment['amount']) }}</td>
                                     <td>{{ $payment['paid_date'] ? \Carbon\Carbon::parse($payment['paid_date'])->format('M d, Y') : '—' }}</td>
+                                    <td class="text-sm capitalize text-slate-500">{{ $payment['method'] ?: '—' }}</td>
                                     <td><x-status-badge :status="$payment['status']" /></td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="py-8 text-center text-slate-500">No payment records found</td>
+                                    <td colspan="6" class="py-8 text-center text-slate-500">No payment records found</td>
                                 </tr>
                             @endforelse
                         </tbody>

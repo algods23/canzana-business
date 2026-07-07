@@ -46,10 +46,10 @@
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th>Due Date</th>
                         <th>Tenant</th>
                         <th>Property / Unit</th>
                         <th>Amount</th>
-                        <th>Due Date</th>
                         <th>Paid Date</th>
                         <th>Method</th>
                         <th>Status</th>
@@ -59,14 +59,14 @@
                 <tbody>
                     @forelse($payments as $payment)
                         <tr class="{{ $payment['status'] === 'overdue' ? 'bg-rose-50/30' : '' }}">
-                            <td class="font-medium text-slate-900">{{ $payment['tenant'] }}</td>
+                        <td>{{ $payment['paid_date'] ? \Carbon\Carbon::parse($payment['paid_date'])->format('M d, Y') : '—' }}</td>    
+                        <td class="font-medium text-slate-900">{{ $payment['tenant'] }}</td>
                             <td>
                                 <p>{{ $payment['property'] }}</p>
                                 <p class="text-xs text-slate-500">Unit {{ $payment['unit'] }}</p>
                             </td>
                             <td class="font-semibold">₱{{ number_format($payment['amount']) }}</td>
                             <td>{{ \Carbon\Carbon::parse($payment['due_date'])->format('M d, Y') }}</td>
-                            <td>{{ $payment['paid_date'] ? \Carbon\Carbon::parse($payment['paid_date'])->format('M d, Y') : '—' }}</td>
                             <td>{{ $payment['method'] ?? '—' }}</td>
                             <td><x-status-badge :status="$payment['status']" /></td>
                             <td>

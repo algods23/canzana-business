@@ -174,7 +174,7 @@ class TenantController extends Controller
 
     public function show(Tenant $tenant)
     {
-        $tenant->load(['rooms.buildingModel.propertyModel', 'payments' => fn ($query) => $query->latest('due_date')->take(4)]);
+        $tenant->load(['rooms.buildingModel.propertyModel', 'payments' => fn ($query) => $query->orderByDesc('due_date')]);
 
         return view('tenants.show', [
             'tenant' => $tenant,
