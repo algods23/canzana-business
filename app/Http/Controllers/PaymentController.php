@@ -171,6 +171,32 @@ class PaymentController extends Controller
         return redirect()->route('payments.index')->with('success', 'Payment deleted.');
     }
 
+    public function markPaid(Request $request, Payment $payment): RedirectResponse
+    {
+        if ($payment->status === 'paid') {
+            return back()->with('info', 'Payment is already marked as paid.');
+        }
+
+        $payment->update([
+            'status'    => 'paid',
+            'paid_date' => now()->toDateString(),
+        ]);
+
+        if ($payment->tenant_id) {
+            $tenant = Tenant::find($payment->tenant_id);
+            if ($tenant) {
+                $tenant->decrement('balance', $payment->amount);
+            }
+        }
+
+        $redirectTo = $request->query('redirect_tenant');
+        if ($redirectTo) {
+            return redirect()->route('tenants.show', $redirectTo)->with('success', 'Payment marked as paid.');
+        }
+
+        return redirect()->route('payments.index')->with('success', 'Payment marked as paid.');
+    }
+
     public function index(Request $request)
     {
         $payments = Payment::query()->with(['tenantModel', 'roomModel', 'propertyModel']);

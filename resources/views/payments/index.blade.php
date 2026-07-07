@@ -73,9 +73,12 @@
                             <td><x-status-badge :status="$payment['status']" /></td>
                             <td>
                                 @if($payment['status'] !== 'paid')
-                                    <button type="button" class="btn btn-primary py-1 text-xs">Mark Paid</button>
+                                    <form action="{{ route('payments.markPaid', $payment['id']) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary py-1 text-xs">Mark Paid</button>
+                                    </form>
                                 @else
-                                    <button type="button" class="btn btn-ghost py-1 text-xs">Receipt</button>
+                                    <span class="text-xs text-emerald-600 font-semibold">✓ Receipt</span>
                                 @endif
                             </td>
                         </tr>

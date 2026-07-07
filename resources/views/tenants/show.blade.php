@@ -94,12 +94,24 @@
                     @foreach($tenant->rooms as $room)
                         @php
                             $latestPayment = $latestPaymentByRoom[$room->id] ?? null;
-                            $isPaid = $latestPayment && $latestPayment->status === 'paid';
-                            $isOverdue = $latestPayment && $latestPayment->status === 'overdue';
-                            $hasPending = $latestPayment && $latestPayment->status === 'pending';
-                            $nextDue = $latestPayment?->due_date 
-                                ? \Carbon\Carbon::parse($latestPayment->due_date)->addMonth()->format('M d, Y')
-                                : ($room->lease_start ? \Carbon\Carbon::parse($room->lease_start)->addMonth()->format('M d, Y') : null);
+                            $today = \Carbon\Carbon::today();
+
+                            // Calculate next due date
+                            $nextDueDate = null;
+                            if ($latestPayment?->due_date) {
+                                $nextDueDate = \Carbon\Carbon::parse($latestPayment->due_date)->addMonth();
+                            } elseif ($room->lease_start) {
+                                $nextDueDate = \Carbon\Carbon::parse($room->lease_start)->addMonth();
+                            }
+
+                            // If the last payment was paid BUT the next due date has arrived → new cycle is pending
+                            $newCycleDue = $latestPayment && $latestPayment->status === 'paid' && $nextDueDate && $today->gte($nextDueDate);
+
+                            $isPaid     = $latestPayment && $latestPayment->status === 'paid' && !$newCycleDue;
+                            $isOverdue  = ($latestPayment && $latestPayment->status === 'overdue') || ($newCycleDue && $today->gt($nextDueDate));
+                            $hasPending = ($latestPayment && $latestPayment->status === 'pending') || $newCycleDue;
+
+                            $nextDue = $nextDueDate?->format('M d, Y');
                         @endphp
                         <div class="panel p-5 {{ $isOverdue ? 'border-rose-200' : ($isPaid ? 'border-emerald-200' : '') }}">
                             <div class="flex justify-between items-start mb-3 border-b border-slate-100 pb-3">

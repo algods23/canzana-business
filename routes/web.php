@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/{payment}/edit', [PaymentController::class, 'edit'])->middleware('role:admin,manager')->name('edit');
         Route::put('/{payment}', [PaymentController::class, 'update'])->middleware('role:admin,manager')->name('update');
         Route::delete('/{payment}', [PaymentController::class, 'destroy'])->middleware('role:admin,manager')->name('destroy');
+        Route::post('/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->middleware('role:admin,manager')->name('markPaid');
     });
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
