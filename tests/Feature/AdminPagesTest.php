@@ -52,6 +52,26 @@ class AdminPagesTest extends TestCase
 
         $this->actingAs($admin)
             ->get(route('properties.show', $property))
+            ->assertOk()
+            ->assertSee(route('properties.buildings.create', $property), false);
+
+        $this->actingAs($admin)
+            ->get(route('properties.buildings.create', $property))
             ->assertOk();
+
+        $this->actingAs($admin)
+            ->post(route('properties.buildings.store', $property), [
+                'name' => 'Annex Building',
+                'floors' => 3,
+                'status' => 'active',
+            ])
+            ->assertRedirect(route('properties.show', $property));
+
+        $this->assertDatabaseHas('buildings', [
+            'property_id' => $property->id,
+            'name' => 'Annex Building',
+            'floors' => 3,
+            'status' => 'active',
+        ]);
     }
 }

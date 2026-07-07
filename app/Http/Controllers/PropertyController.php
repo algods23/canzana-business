@@ -164,4 +164,36 @@ class PropertyController extends Controller
             'activities' => Analytics::recentActivities(3),
         ]);
     }
+
+    public function createRoom(Property $property, Building $building): View
+    {
+        abort_unless($building->property_id === $property->id, 404);
+
+        return view('properties.rooms.create', [
+            'property' => $property,
+            'building' => $building,
+            'room' => new Room([
+                'floor' => 1,
+                'status' => 'vacant',
+            ]),
+        ]);
+    }
+
+    public function storeRoom(Request $request, Property $property, Building $building): RedirectResponse
+    {
+        abort_unless($building->property_id === $property->id, 404);
+
+        $validated = $request->validate([
+            'unit' => ['required', 'string', 'max:50'],
+            'floor' => ['required', 'integer', 'min:1', 'max:200'],
+            'type' => ['required', 'string', 'max:50'],
+            'size_sqm' => ['required', 'numeric', 'min:1', 'max:10000'],
+            'rent' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'status' => ['required', 'in:vacant,occupied,maintenance'],
+        ]);
+
+        $building->rooms()->create($validated);
+
+        return redirect()->route('properties.building', [$property, $building])->with('success', 'Room added.');
+    }
 }
