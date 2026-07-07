@@ -15,6 +15,8 @@ class TenantController extends Controller
 {
     public function create(): View
     {
+        $existingTenants = Tenant::orderBy('name')->get(['id', 'name', 'email', 'phone', 'company', 'lease_start', 'lease_end', 'rent', 'status', 'property_id', 'room_id']);
+
         return view('tenants.create', [
             'tenant' => new Tenant([
                 'property_id' => request('property_id'),
@@ -22,16 +24,18 @@ class TenantController extends Controller
             ]),
             'properties' => Property::query()->orderBy('name')->get(),
             'rooms' => Room::query()->with('buildingModel.propertyModel')->orderBy('unit')->get(),
+            'existingTenants' => $existingTenants,
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            'existing_tenant_id' => ['nullable', 'exists:tenants,id'],
             'property_id' => ['required', 'exists:properties,id'],
             'room_id' => ['nullable', 'exists:rooms,id'],
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:tenants,email'],
+            'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'company' => ['nullable', 'string', 'max:255'],
             'lease_start' => ['nullable', 'date'],
@@ -41,13 +45,42 @@ class TenantController extends Controller
             'status' => ['required', Rule::in(['active', 'overdue', 'inactive'])],
         ]);
 
-        if (! empty($validated['room_id'])) {
-            $room = Room::with('buildingModel')->findOrFail($validated['room_id']);
-            abort_unless($room->buildingModel?->property_id === (int) $validated['property_id'], 422);
-            $room->update(['status' => 'occupied']);
+        // If updating an existing tenant
+        if (! empty($validated['existing_tenant_id'])) {
+            $tenant = Tenant::findOrFail($validated['existing_tenant_id']);
+
+            // Validate unique email ignoring this tenant
+            $request->validate([
+                'email' => [Rule::unique('tenants', 'email')->ignore($tenant->id)],
+            ]);
+
+            // If a room is selected, assign it (don't vacate old rooms — multi-room support)
+            if (! empty($validated['room_id'])) {
+                $room = Room::with('buildingModel')->findOrFail($validated['room_id']);
+                abort_unless($room->buildingModel?->property_id === (int) $validated['property_id'], 422);
+                $room->update(['tenant_id' => $tenant->id, 'status' => 'occupied']);
+            }
+
+            unset($validated['existing_tenant_id'], $validated['room_id']);
+            $tenant->update($validated);
+
+            return redirect()->route('tenants.show', $tenant)->with('success', 'Tenant updated and room assigned.');
         }
 
+        // Creating a new tenant
+        $request->validate([
+            'email' => ['unique:tenants,email'],
+        ]);
+
+        $roomId = $validated['room_id'] ?? null;
+        unset($validated['existing_tenant_id'], $validated['room_id']);
         $tenant = Tenant::create($validated);
+
+        if ($roomId) {
+            $room = Room::with('buildingModel')->findOrFail($roomId);
+            abort_unless($room->buildingModel?->property_id === (int) $validated['property_id'], 422);
+            $room->update(['tenant_id' => $tenant->id, 'status' => 'occupied']);
+        }
 
         return redirect()->route('tenants.show', $tenant)->with('success', 'Tenant created.');
     }
@@ -77,16 +110,14 @@ class TenantController extends Controller
             'status' => ['required', Rule::in(['active', 'overdue', 'inactive'])],
         ]);
 
-        if ($tenant->room_id && $tenant->room_id !== (int) ($validated['room_id'] ?? 0)) {
-            Room::whereKey($tenant->room_id)->update(['status' => 'vacant']);
-        }
-
+        // If a new room is being explicitly assigned via the edit form, assign it
         if (! empty($validated['room_id'])) {
             $room = Room::with('buildingModel')->findOrFail($validated['room_id']);
             abort_unless($room->buildingModel?->property_id === (int) $validated['property_id'], 422);
-            $room->update(['status' => 'occupied']);
+            $room->update(['tenant_id' => $tenant->id, 'status' => 'occupied']);
         }
 
+        unset($validated['room_id']);
         $tenant->update($validated);
 
         return redirect()->route('tenants.show', $tenant)->with('success', 'Tenant updated.');
@@ -94,9 +125,8 @@ class TenantController extends Controller
 
     public function destroy(Tenant $tenant): RedirectResponse
     {
-        if ($tenant->room_id) {
-            Room::whereKey($tenant->room_id)->update(['status' => 'vacant']);
-        }
+        // Vacate all rooms this tenant is assigned to
+        $tenant->rooms()->update(['tenant_id' => null, 'status' => 'vacant']);
 
         $tenant->delete();
 

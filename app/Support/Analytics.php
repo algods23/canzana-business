@@ -13,14 +13,14 @@ class Analytics
     public static function dashboardStats(): array
     {
         $totalRooms = Room::count();
-        $occupiedRooms = Room::where('rooms.status', 'occupied')->count();
+        $occupiedRooms = Room::whereHas('currentTenant')->count();
 
         return [
             'total_properties' => Property::count(),
             'total_rooms' => $totalRooms,
             'occupied_rooms' => $occupiedRooms,
             'occupancy_rate' => $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 1) : 0.0,
-            'monthly_revenue' => (float) Room::where('rooms.status', 'occupied')->sum('rent'),
+            'monthly_revenue' => (float) Room::whereHas('currentTenant')->sum('rent'),
             'collected_this_month' => (float) Payment::where('payments.status', 'paid')
                 ->whereMonth('paid_date', now()->month)
                 ->whereYear('paid_date', now()->year)
@@ -78,7 +78,7 @@ class Analytics
         return Property::query()
             ->withCount([
                 'rooms',
-                'rooms as occupied_rooms' => fn ($query) => $query->where('rooms.status', 'occupied'),
+                'rooms as occupied_rooms' => fn ($query) => $query->whereHas('currentTenant'),
             ])
             ->orderBy('name')
             ->get()

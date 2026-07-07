@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Room extends Model
 {
@@ -13,6 +13,7 @@ class Room extends Model
 
     protected $fillable = [
         'building_id',
+        'tenant_id',
         'unit',
         'floor',
         'type',
@@ -34,9 +35,18 @@ class Room extends Model
         return $this->belongsTo(Building::class, 'building_id');
     }
 
-    public function currentTenant(): HasOne
+    /**
+     * The tenant directly assigned to this room (via rooms.tenant_id).
+     * A tenant can be assigned to many rooms; each room holds its own tenant_id.
+     */
+    public function currentTenant(): BelongsTo
     {
-        return $this->hasOne(Tenant::class)->where('tenants.status', 'active');
+        return $this->belongsTo(Tenant::class, 'tenant_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
     }
 
     public function getTenantAttribute(): ?string

@@ -151,22 +151,11 @@
                     <h3 class="mt-3 font-semibold text-slate-900">No Tenant</h3>
                     <p class="mt-1 text-sm text-slate-500">This unit is currently {{ $displayStatus }}</p>
                     @if($displayStatus === 'vacant')
-                        <div class="mt-4 flex flex-col gap-3">
-                            <a href="{{ route('tenants.create', ['property_id' => $property['id'], 'room_id' => $room['id']]) }}" class="btn btn-primary w-full">Create New Tenant</a>
-                            <div class="border-t border-slate-200 pt-3 text-left">
-                                <label class="mb-2 block text-xs font-medium text-slate-600">Or assign existing tenant:</label>
-                                <form method="POST" action="{{ route('properties.rooms.assign', [$property['id'], $building['id'], $room['id']]) }}" class="flex gap-2">
-                                    @csrf
-                                    <select name="tenant_id" class="input-field flex-1 py-1.5 text-xs" required>
-                                        <option value="">Select a tenant...</option>
-                                        @foreach(\App\Models\Tenant::whereNull('room_id')->orWhere('room_id', '!=', $room['id'])->orderBy('name')->get() as $t)
-                                            <option value="{{ $t->id }}">{{ $t->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <button type="submit" class="btn btn-secondary whitespace-nowrap py-1.5 px-3 text-xs">Assign</button>
-                                </form>
-                            </div>
-                        </div>
+                        <a href="{{ route('tenants.create', ['property_id' => $property['id'], 'room_id' => $room['id']]) }}"
+                           class="btn btn-primary mt-4 w-full">
+                            Assign Tenant
+                        </a>
+                        <p class="mt-2 text-xs text-slate-400">Create a new tenant or assign an existing one</p>
                     @endif
                 </div>
             @endif

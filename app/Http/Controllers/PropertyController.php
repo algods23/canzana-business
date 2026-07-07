@@ -69,10 +69,10 @@ class PropertyController extends Controller
             ->withCount([
                 'buildings',
                 'rooms',
-                'rooms as occupied_rooms' => fn ($query) => $query->where('rooms.status', 'occupied'),
+                'rooms as occupied_rooms' => fn ($query) => $query->whereHas('currentTenant'),
             ])
             ->withSum([
-                'rooms as monthly_revenue' => fn ($query) => $query->where('rooms.status', 'occupied'),
+                'rooms as monthly_revenue' => fn ($query) => $query->whereHas('currentTenant'),
             ], 'rent');
 
         if ($search = $request->get('search')) {
@@ -101,14 +101,14 @@ class PropertyController extends Controller
         $property->loadCount([
             'buildings',
             'rooms',
-            'rooms as occupied_rooms' => fn ($query) => $query->where('rooms.status', 'occupied'),
+            'rooms as occupied_rooms' => fn ($query) => $query->whereHas('currentTenant'),
         ]);
 
         return view('properties.show', [
             'property' => $property,
             'buildings' => $property->buildings()->withCount([
                 'rooms',
-                'rooms as occupied' => fn ($query) => $query->where('rooms.status', 'occupied'),
+                'rooms as occupied' => fn ($query) => $query->whereHas('currentTenant'),
             ])->orderBy('name')->get(),
         ]);
     }
@@ -260,13 +260,9 @@ class PropertyController extends Controller
         ]);
 
         $tenant = \App\Models\Tenant::findOrFail($validated['tenant_id']);
-        
-        if ($tenant->room_id && $tenant->room_id !== $room->id) {
-            \App\Models\Room::whereKey($tenant->room_id)->update(['status' => 'vacant']);
-        }
-        
-        $tenant->update(['property_id' => $property->id, 'room_id' => $room->id]);
-        $room->update(['status' => 'occupied']);
+
+        // Assign this room to the tenant (multi-room: don't vacate other rooms)
+        $room->update(['tenant_id' => $tenant->id, 'status' => 'occupied']);
 
         return redirect()->route('properties.room', [$property, $building, $room])->with('success', 'Tenant assigned to unit.');
     }
