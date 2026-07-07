@@ -126,22 +126,31 @@
                     <dl class="mt-5 space-y-3 text-sm">
                         <div class="flex justify-between">
                             <dt class="text-slate-500">Lease Start</dt>
-                            <dd class="font-medium text-slate-900">Jun 1, 2024</dd>
+                            <dd class="font-medium text-slate-900">{{ $room['lease_start'] ? \Carbon\Carbon::parse($room['lease_start'])->format('M d, Y') : '—' }}</dd>
                         </div>
                         <div class="flex justify-between">
                             <dt class="text-slate-500">Lease End</dt>
-                            <dd class="font-medium text-slate-900">May 31, 2025</dd>
+                            <dd class="font-medium text-slate-900">{{ $room['lease_end'] ? \Carbon\Carbon::parse($room['lease_end'])->format('M d, Y') : '—' }}</dd>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between border-t border-slate-100 pt-3">
                             <dt class="text-slate-500">Monthly Rent</dt>
                             <dd class="font-medium text-slate-900">₱{{ number_format($room['rent']) }}</dd>
                         </div>
                         <div class="flex justify-between">
                             <dt class="text-slate-500">Balance</dt>
-                            <dd class="font-medium text-emerald-600">₱0.00</dd>
+                            <dd class="font-medium {{ $tenant['balance'] > 0 ? 'text-rose-600' : 'text-emerald-600' }}">₱{{ number_format($tenant['balance'] ?? 0) }}</dd>
                         </div>
                     </dl>
-                    <a href="{{ route('tenants.show', $tenant) }}" class="btn btn-secondary mt-5 w-full">View Tenant Profile</a>
+                    <div class="mt-5 space-y-2">
+                        <a href="{{ route('tenants.show', $tenant) }}" class="btn btn-secondary w-full text-center justify-center">View Tenant Profile</a>
+                        <div class="flex gap-2">
+                            <a href="{{ route('tenants.create', ['property_id' => $property['id'], 'room_id' => $room['id']]) }}" class="btn btn-secondary flex-1 py-1.5 px-2 text-xs text-center justify-center">Change Tenant</a>
+                            <form action="{{ route('properties.rooms.vacate', [$property['id'], $building['id'], $room['id']]) }}" method="POST" class="flex-1 m-0">
+                                @csrf
+                                <button type="submit" class="btn btn-secondary w-full py-1.5 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 text-center justify-center" onclick="return confirm('Are you sure you want to remove this tenant from this room?');">Remove Tenant</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             @else
                 <div class="panel p-6 text-center">

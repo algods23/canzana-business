@@ -20,6 +20,8 @@ class Room extends Model
         'size_sqm',
         'rent',
         'status',
+        'lease_start',
+        'lease_end',
     ];
 
     protected function casts(): array
@@ -27,6 +29,8 @@ class Room extends Model
         return [
             'size_sqm' => 'decimal:2',
             'rent' => 'decimal:2',
+            'lease_start' => 'date',
+            'lease_end' => 'date',
         ];
     }
 

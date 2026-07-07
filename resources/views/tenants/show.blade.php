@@ -86,35 +86,50 @@
 
         {{-- Sidebar --}}
         <div class="space-y-6">
-            <div class="panel p-6">
-                <h3 class="font-semibold text-slate-900">Lease Details</h3>
-                <dl class="mt-4 space-y-3 text-sm">
-                    <div class="flex justify-between">
-                        <dt class="text-slate-500">Property</dt>
-                        <dd class="font-medium text-slate-900 text-right">{{ $tenant['property'] }}</dd>
+            @if($tenant->rooms->count() > 0)
+                <div class="space-y-4">
+                    <h3 class="font-semibold text-slate-900">Leased Units ({{ $tenant->rooms->count() }})</h3>
+                    @foreach($tenant->rooms as $room)
+                        <div class="panel p-5">
+                            <div class="flex justify-between items-start mb-3 border-b border-slate-100 pb-3">
+                                <div>
+                                    <h4 class="font-bold text-slate-900">Unit {{ $room->unit }}</h4>
+                                    <p class="text-xs text-slate-500">{{ $room->buildingModel?->propertyModel?->name }} • {{ $room->buildingModel?->name }}</p>
+                                </div>
+                                <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">Active</span>
+                            </div>
+                            <dl class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <dt class="text-slate-500">Lease Start</dt>
+                                    <dd class="font-medium text-slate-900">{{ $room->lease_start ? \Carbon\Carbon::parse($room->lease_start)->format('M d, Y') : '—' }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-slate-500">Lease End</dt>
+                                    <dd class="font-medium text-slate-900">{{ $room->lease_end ? \Carbon\Carbon::parse($room->lease_end)->format('M d, Y') : '—' }}</dd>
+                                </div>
+                                <div class="flex justify-between font-semibold mt-2 pt-2 border-t border-slate-50">
+                                    <dt class="text-slate-700">Monthly Rent</dt>
+                                    <dd class="text-brand-700">₱{{ number_format($room->rent) }}</dd>
+                                </div>
+                            </dl>
+                            <div class="mt-4 flex gap-2">
+                                <a href="{{ route('payments.create', ['tenant_id' => $tenant->id, 'room_id' => $room->id]) }}" class="btn btn-primary flex-1 py-1.5 text-xs text-center justify-center">Record Payment</a>
+                                <a href="{{ route('properties.room', [$room->buildingModel->property_id, $room->building_id, $room->id]) }}" class="btn btn-secondary flex-1 py-1.5 text-xs text-center justify-center">View Unit</a>
+                            </div>
+                        </div>
+                    @endforeach
+                    <div class="panel p-5 bg-brand-50 border-brand-100">
+                        <div class="flex justify-between font-bold text-base">
+                            <span class="text-brand-900">Total Monthly Payable</span>
+                            <span class="text-brand-700">₱{{ number_format($tenant->rooms->sum('rent')) }}</span>
+                        </div>
                     </div>
-                    <div class="flex justify-between">
-                        <dt class="text-slate-500">Unit</dt>
-                        <dd class="font-medium text-slate-900">{{ $tenant['unit'] }}</dd>
-                    </div>
-                    <div class="flex justify-between">
-                        <dt class="text-slate-500">Lease Start</dt>
-                        <dd class="font-medium text-slate-900">{{ \Carbon\Carbon::parse($tenant['lease_start'])->format('M d, Y') }}</dd>
-                    </div>
-                    <div class="flex justify-between">
-                        <dt class="text-slate-500">Lease End</dt>
-                        <dd class="font-medium text-slate-900">{{ \Carbon\Carbon::parse($tenant['lease_end'])->format('M d, Y') }}</dd>
-                    </div>
-                    <div class="flex justify-between border-t border-border pt-3">
-                        <dt class="text-slate-500">Monthly Rent</dt>
-                        <dd class="font-bold text-brand-700">₱{{ number_format($tenant['rent']) }}</dd>
-                    </div>
-                    <div class="flex justify-between">
-                        <dt class="text-slate-500">Outstanding Balance</dt>
-                        <dd class="font-bold {{ $tenant['balance'] > 0 ? 'text-rose-600' : 'text-emerald-600' }}">₱{{ number_format($tenant['balance']) }}</dd>
-                    </div>
-                </dl>
-            </div>
+                </div>
+            @else
+                <div class="panel p-6 text-center text-slate-500">
+                    No units assigned to this tenant.
+                </div>
+            @endif
 
             @if($tenant['balance'] > 0)
                 <div class="rounded-xl border border-rose-200 bg-rose-50 p-5">

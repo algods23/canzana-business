@@ -266,4 +266,17 @@ class PropertyController extends Controller
 
         return redirect()->route('properties.room', [$property, $building, $room])->with('success', 'Tenant assigned to unit.');
     }
+    public function vacateTenant(Request $request, Property $property, Building $building, Room $room): RedirectResponse
+    {
+        abort_unless($building->property_id === $property->id && $room->building_id === $building->id, 404);
+
+        $room->update([
+            'tenant_id' => null,
+            'status' => 'vacant',
+            'lease_start' => null,
+            'lease_end' => null,
+        ]);
+
+        return redirect()->route('properties.room', [$property, $building, $room])->with('success', 'Tenant removed from unit.');
+    }
 }

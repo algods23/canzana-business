@@ -58,7 +58,13 @@ class TenantController extends Controller
             if (! empty($validated['room_id'])) {
                 $room = Room::with('buildingModel')->findOrFail($validated['room_id']);
                 abort_unless($room->buildingModel?->property_id === (int) $validated['property_id'], 422);
-                $room->update(['tenant_id' => $tenant->id, 'status' => 'occupied']);
+                $room->update([
+                    'tenant_id' => $tenant->id,
+                    'status' => 'occupied',
+                    'lease_start' => $validated['lease_start'] ?? null,
+                    'lease_end' => $validated['lease_end'] ?? null,
+                    'rent' => $validated['rent'] ?? $room->rent,
+                ]);
             }
 
             unset($validated['existing_tenant_id'], $validated['room_id']);
@@ -79,7 +85,13 @@ class TenantController extends Controller
         if ($roomId) {
             $room = Room::with('buildingModel')->findOrFail($roomId);
             abort_unless($room->buildingModel?->property_id === (int) $validated['property_id'], 422);
-            $room->update(['tenant_id' => $tenant->id, 'status' => 'occupied']);
+            $room->update([
+                'tenant_id' => $tenant->id,
+                'status' => 'occupied',
+                'lease_start' => $validated['lease_start'] ?? null,
+                'lease_end' => $validated['lease_end'] ?? null,
+                'rent' => $validated['rent'] ?? $room->rent,
+            ]);
         }
 
         return redirect()->route('tenants.show', $tenant)->with('success', 'Tenant created.');
@@ -114,7 +126,13 @@ class TenantController extends Controller
         if (! empty($validated['room_id'])) {
             $room = Room::with('buildingModel')->findOrFail($validated['room_id']);
             abort_unless($room->buildingModel?->property_id === (int) $validated['property_id'], 422);
-            $room->update(['tenant_id' => $tenant->id, 'status' => 'occupied']);
+            $room->update([
+                'tenant_id' => $tenant->id,
+                'status' => 'occupied',
+                'lease_start' => $validated['lease_start'] ?? null,
+                'lease_end' => $validated['lease_end'] ?? null,
+                'rent' => $validated['rent'] ?? $room->rent,
+            ]);
         }
 
         unset($validated['room_id']);
@@ -135,12 +153,12 @@ class TenantController extends Controller
 
     public function index(Request $request)
     {
-        $tenants = Tenant::query()->with(['propertyModel', 'roomModel']);
+        $tenants = Tenant::query()->with(['rooms.buildingModel.propertyModel']);
 
         if ($search = $request->get('search')) {
             $tenants->where(function ($query) use ($search): void {
                 $query->where('name', 'like', '%'.$search.'%')
-                    ->orWhereHas('roomModel', fn ($roomQuery) => $roomQuery->where('unit', 'like', '%'.$search.'%'));
+                    ->orWhereHas('rooms', fn ($roomQuery) => $roomQuery->where('unit', 'like', '%'.$search.'%'));
             });
         }
 
@@ -156,7 +174,7 @@ class TenantController extends Controller
 
     public function show(Tenant $tenant)
     {
-        $tenant->load(['propertyModel', 'roomModel', 'payments' => fn ($query) => $query->latest('due_date')->take(4)]);
+        $tenant->load(['rooms.buildingModel.propertyModel', 'payments' => fn ($query) => $query->latest('due_date')->take(4)]);
 
         return view('tenants.show', [
             'tenant' => $tenant,

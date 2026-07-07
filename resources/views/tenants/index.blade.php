@@ -58,17 +58,38 @@
                                 </div>
                             </td>
                             <td>
-                                <p class="font-medium text-slate-700">{{ $tenant['property'] }}</p>
-                                <p class="text-xs text-slate-500">Unit {{ $tenant['unit'] }}</p>
+                                @if($tenant->rooms->count() > 0)
+                                    <p class="font-medium text-slate-700">{{ $tenant->rooms->count() > 1 ? 'Multiple Properties' : $tenant->rooms->first()->buildingModel?->propertyModel?->name }}</p>
+                                    <p class="text-xs text-slate-500">
+                                        @if($tenant->rooms->count() > 1)
+                                            {{ $tenant->rooms->count() }} Units
+                                        @else
+                                            Unit {{ $tenant->rooms->first()->unit }}
+                                        @endif
+                                    </p>
+                                @else
+                                    <p class="font-medium text-slate-500">—</p>
+                                @endif
                             </td>
                             <td>
                                 <p class="text-sm">{{ $tenant['email'] }}</p>
                                 <p class="text-xs text-slate-500">{{ $tenant['phone'] }}</p>
                             </td>
                             <td class="text-sm">
-                                {{ \Carbon\Carbon::parse($tenant['lease_start'])->format('M Y') }} — {{ \Carbon\Carbon::parse($tenant['lease_end'])->format('M Y') }}
+                                @if($tenant->rooms->count() > 0)
+                                    @php
+                                        $firstRoom = $tenant->rooms->first();
+                                    @endphp
+                                    @if($tenant->rooms->count() > 1)
+                                        <span class="text-slate-500">Various</span>
+                                    @else
+                                        {{ $firstRoom->lease_start ? \Carbon\Carbon::parse($firstRoom->lease_start)->format('M Y') : '—' }} — {{ $firstRoom->lease_end ? \Carbon\Carbon::parse($firstRoom->lease_end)->format('M Y') : '—' }}
+                                    @endif
+                                @else
+                                    —
+                                @endif
                             </td>
-                            <td class="font-medium">₱{{ number_format($tenant['rent']) }}</td>
+                            <td class="font-medium">₱{{ number_format($tenant->rooms->sum('rent')) }}</td>
                             <td class="{{ $tenant['balance'] > 0 ? 'font-semibold text-rose-600' : 'text-emerald-600' }}">
                                 ₱{{ number_format($tenant['balance']) }}
                             </td>

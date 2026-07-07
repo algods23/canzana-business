@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/{property}/buildings/{building}/rooms/{room}/edit', [PropertyController::class, 'editRoom'])->middleware('role:admin,manager')->name('rooms.edit');
         Route::put('/{property}/buildings/{building}/rooms/{room}', [PropertyController::class, 'updateRoom'])->middleware('role:admin,manager')->name('rooms.update');
         Route::post('/{property}/buildings/{building}/rooms/{room}/assign', [PropertyController::class, 'assignTenant'])->middleware('role:admin,manager')->name('rooms.assign');
+        Route::post('/{property}/buildings/{building}/rooms/{room}/vacate', [PropertyController::class, 'vacateTenant'])->middleware('role:admin,manager')->name('rooms.vacate');
     });
 
     Route::prefix('tenants')->name('tenants.')->group(function (): void {
