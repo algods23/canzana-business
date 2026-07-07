@@ -22,6 +22,7 @@ class Room extends Model
         'status',
         'lease_start',
         'lease_end',
+        'downpayment_months',
     ];
 
     protected function casts(): array
@@ -31,6 +32,7 @@ class Room extends Model
             'rent' => 'decimal:2',
             'lease_start' => 'date',
             'lease_end' => 'date',
+            'downpayment_months' => 'integer',
         ];
     }
 

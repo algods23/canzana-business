@@ -6,6 +6,7 @@ use App\Models\Property;
 use App\Models\Payment;
 use App\Models\Tenant;
 use App\Support\Analytics;
+use App\Support\TenantBalance;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -25,7 +26,9 @@ class PaymentController extends Controller
             if ($tenant) {
                 $room = $tenant->rooms->where('id', $payment->room_id)->first();
                 if ($room && $room->lease_start) {
-                    $payment->amount = $room->rent;
+                    $roomBalance = TenantBalance::roomBreakdowns($tenant)
+                        ->first(fn ($breakdown) => $breakdown['room']->id === (int) $room->id);
+                    $payment->amount = max(0, $roomBalance['balance'] ?? (float) $room->rent);
                     $lastPayment = Payment::where('tenant_id', $payment->tenant_id)
                                           ->where('room_id', $payment->room_id)
                                           ->orderByDesc('due_date')
@@ -83,10 +86,7 @@ class PaymentController extends Controller
         }
 
         Payment::create($validated);
-
-        if ($validated['status'] === 'paid') {
-            $tenant->decrement('balance', $validated['amount']);
-        }
+        TenantBalance::sync($tenant->fresh(['rooms.payments']));
 
         return redirect()
             ->route('tenants.show', $validated['tenant_id'])
@@ -137,21 +137,13 @@ class PaymentController extends Controller
             $validated['status'] = 'pending';
         }
 
-        $originalStatus = $payment->status;
-        $originalAmount = $payment->amount;
         $originalTenantId = $payment->tenant_id;
 
         $payment->update($validated);
 
-        if ($originalStatus === 'paid') {
-            $originalTenant = Tenant::find($originalTenantId);
-            if ($originalTenant) {
-                $originalTenant->increment('balance', $originalAmount);
-            }
-        }
-
-        if ($validated['status'] === 'paid') {
-            $tenant->decrement('balance', $validated['amount']);
+        TenantBalance::sync($tenant->fresh(['rooms.payments']));
+        if ((int) $originalTenantId !== (int) $tenant->id && $originalTenant = Tenant::find($originalTenantId)) {
+            TenantBalance::sync($originalTenant->fresh(['rooms.payments']));
         }
 
         return redirect()->route('payments.index')->with('success', 'Payment updated.');
@@ -159,14 +151,12 @@ class PaymentController extends Controller
 
     public function destroy(Payment $payment): RedirectResponse
     {
-        if ($payment->status === 'paid' && $payment->tenant_id) {
-            $tenant = Tenant::find($payment->tenant_id);
-            if ($tenant) {
-                $tenant->increment('balance', $payment->amount);
-            }
-        }
+        $tenant = $payment->tenant_id ? Tenant::find($payment->tenant_id) : null;
 
         $payment->delete();
+        if ($tenant) {
+            TenantBalance::sync($tenant->fresh(['rooms.payments']));
+        }
 
         return redirect()->route('payments.index')->with('success', 'Payment deleted.');
     }
@@ -182,11 +172,8 @@ class PaymentController extends Controller
             'paid_date' => now()->toDateString(),
         ]);
 
-        if ($payment->tenant_id) {
-            $tenant = Tenant::find($payment->tenant_id);
-            if ($tenant) {
-                $tenant->decrement('balance', $payment->amount);
-            }
+        if ($payment->tenant_id && $tenant = Tenant::find($payment->tenant_id)) {
+            TenantBalance::sync($tenant->fresh(['rooms.payments']));
         }
 
         $redirectTo = $request->query('redirect_tenant');

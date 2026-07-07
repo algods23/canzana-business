@@ -15,18 +15,19 @@
 @endsection
 
 @section('content')
+    @php $displayStatus = $totalBalance > 0 ? 'overdue' : $tenant['status']; @endphp
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div class="lg:col-span-2 space-y-6">
             {{-- Profile Card --}}
             <div class="panel p-6">
                 <div class="flex flex-wrap items-start gap-5">
-                    <div class="flex h-16 w-16 items-center justify-center rounded-full {{ $tenant['status'] === 'overdue' ? 'bg-rose-100 text-rose-700' : 'bg-brand-100 text-brand-700' }} text-2xl font-bold">
+                    <div class="flex h-16 w-16 items-center justify-center rounded-full {{ $displayStatus === 'overdue' ? 'bg-rose-100 text-rose-700' : 'bg-brand-100 text-brand-700' }} text-2xl font-bold">
                         {{ strtoupper(substr($tenant['name'], 0, 1)) }}
                     </div>
                     <div class="flex-1">
                         <div class="flex flex-wrap items-center gap-3">
                             <h2 class="text-xl font-bold text-slate-900">{{ $tenant['name'] }}</h2>
-                            <x-status-badge :status="$tenant['status']" />
+                            <x-status-badge :status="$displayStatus" />
                         </div>
                         @if($tenant['company'])
                             <p class="mt-0.5 text-sm text-slate-500">{{ $tenant['company'] }}</p>
@@ -93,6 +94,7 @@
                     <h3 class="font-semibold text-slate-900">Leased Units ({{ $tenant->rooms->count() }})</h3>
                     @foreach($tenant->rooms as $room)
                         @php
+                            $roomBalance = $roomBalances->first(fn ($breakdown) => $breakdown['room']->id === $room->id);
                             $latestPayment = $latestPaymentByRoom[$room->id] ?? null;
                             $today = \Carbon\Carbon::today();
 
@@ -164,6 +166,28 @@
                                     <dt class="text-slate-700">Monthly Rent</dt>
                                     <dd class="text-brand-700">₱{{ number_format($room->rent) }}</dd>
                                 </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-slate-500">Downpayment</dt>
+                                    <dd class="font-medium text-slate-900">{{ $roomBalance['downpayment_months'] ?? 0 }} mo. / ₱{{ number_format($roomBalance['downpayment_amount'] ?? 0) }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-slate-500">Months Payable</dt>
+                                    <dd class="font-medium text-slate-900">{{ $roomBalance['monthly_months_due'] ?? 0 }} mo.</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-slate-500">Months Behind</dt>
+                                    <dd class="font-medium text-slate-900">{{ $roomBalance['months_behind'] ?? 0 }} mo.</dd>
+                                </div>
+                                @if(($roomBalance['advance'] ?? 0) > 0)
+                                    <div class="flex justify-between">
+                                        <dt class="text-slate-500">Advance Credit</dt>
+                                        <dd class="font-medium text-emerald-600">₱{{ number_format($roomBalance['advance']) }}</dd>
+                                    </div>
+                                @endif
+                                <div class="flex justify-between font-semibold">
+                                    <dt class="text-slate-700">Current Balance</dt>
+                                    <dd class="{{ ($roomBalance['balance'] ?? 0) > 0 ? 'text-rose-600' : 'text-emerald-600' }}">₱{{ number_format($roomBalance['balance'] ?? 0) }}</dd>
+                                </div>
                             </dl>
                             <div class="mt-4 flex gap-2">
                                 <a href="{{ route('payments.create', ['tenant_id' => $tenant->id, 'room_id' => $room->id]) }}" class="btn {{ $isOverdue ? 'bg-rose-600 text-white hover:bg-rose-700 border-rose-600' : 'btn-primary' }} flex-1 py-1.5 text-xs text-center justify-center">{{ $isOverdue ? '⚠ Pay Now' : 'Record Payment' }}</a>
@@ -176,6 +200,10 @@
                             <span class="text-brand-900">Total Monthly Payable</span>
                             <span class="text-brand-700">₱{{ number_format($tenant->rooms->sum('rent')) }}</span>
                         </div>
+                        <div class="mt-2 flex justify-between text-sm font-semibold">
+                            <span class="text-brand-900">Total Current Balance</span>
+                            <span class="{{ $totalBalance > 0 ? 'text-rose-600' : 'text-emerald-600' }}">₱{{ number_format($totalBalance) }}</span>
+                        </div>
                     </div>
                 </div>
             @else
@@ -184,13 +212,13 @@
                 </div>
             @endif
 
-            @if($tenant['balance'] > 0)
+            @if($totalBalance > 0)
                 <div class="rounded-xl border border-rose-200 bg-rose-50 p-5">
                     <div class="flex items-center gap-2 text-rose-800">
                         @include('components.icons.alert', ['class' => 'h-5 w-5'])
                         <span class="font-semibold">Payment Overdue</span>
                     </div>
-                    <p class="mt-2 text-sm text-rose-700">This tenant has an outstanding balance of ₱{{ number_format($tenant['balance']) }}. Send a reminder or record a partial payment.</p>
+                    <p class="mt-2 text-sm text-rose-700">This tenant has an outstanding balance of ₱{{ number_format($totalBalance) }}. Send a reminder or record a partial payment.</p>
                     <button type="button" class="btn mt-4 w-full bg-rose-600 text-white hover:bg-rose-700">Send Reminder</button>
                 </div>
             @endif
@@ -211,3 +239,4 @@
         </div>
     </div>
 @endsection
+

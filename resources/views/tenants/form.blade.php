@@ -1,5 +1,9 @@
 @csrf
 <input type="hidden" name="existing_tenant_id" id="existing_tenant_id" value="">
+@php
+    $lockedRoomId = request('room_id');
+    $lockedRoom = $lockedRoomId ? $rooms->firstWhere('id', (int) $lockedRoomId) : null;
+@endphp
 
 {{-- Existing Tenant Selector --}}
 @if(isset($existingTenants) && $existingTenants->count())
@@ -53,12 +57,18 @@
     </div>
     <div>
         <label class="mb-1.5 block text-sm font-medium text-slate-700" for="room_id">Room</label>
-        <select id="room_id" name="room_id" class="input-field w-full">
+        @if($lockedRoom)
+            <input type="hidden" name="room_id" value="{{ $lockedRoom->id }}">
+        @endif
+        <select id="room_id" name="{{ $lockedRoom ? 'locked_room_display' : 'room_id' }}" class="input-field w-full {{ $lockedRoom ? 'bg-slate-50 text-slate-500' : '' }}" @disabled($lockedRoom)>
             <option value="">Unassigned</option>
             @foreach($rooms as $room)
                 <option value="{{ $room->id }}" data-property-id="{{ $room->buildingModel?->property_id }}" data-rent="{{ $room->rent }}" @selected((string) old('room_id', $tenant->room_id) === (string) $room->id)>{{ $room->unit }} — {{ $room->buildingModel?->name }}{{ $room->buildingModel?->propertyModel ? ' / ' . $room->buildingModel->propertyModel->name : '' }}</option>
             @endforeach
         </select>
+        @if($lockedRoom)
+            <p class="mt-1 text-xs text-slate-500">This room is locked from the selected unit.</p>
+        @endif
     </div>
     <div>
         <label class="mb-1.5 block text-sm font-medium text-slate-700" for="company">Company</label>
@@ -68,6 +78,12 @@
         <label class="mb-1.5 block text-sm font-medium text-slate-700" for="rent">Monthly rent</label>
         <input id="rent" name="rent" type="number" step="0.01" value="{{ old('rent', $tenant->rent) }}" class="input-field w-full bg-slate-50" readonly required>
         @error('rent')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+    </div>
+    <div>
+        <label class="mb-1.5 block text-sm font-medium text-slate-700" for="downpayment_months">Required downpayment months</label>
+        <input id="downpayment_months" name="downpayment_months" type="number" min="0" max="120" step="1" value="{{ old('downpayment_months', $lockedRoom->downpayment_months ?? 0) }}" class="input-field w-full">
+        <p class="mt-1 text-xs text-slate-500">Downpayment total: <span id="downpayment_total">₱0</span></p>
+        @error('downpayment_months')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
     </div>
     <div class="hidden">
         <input id="balance" name="balance" type="hidden" value="{{ old('balance', $tenant->balance ?? 0) }}">
@@ -99,6 +115,8 @@
         const rentInput       = document.getElementById('rent');
         const existingSelect  = document.getElementById('existing_tenant_selector');
         const hiddenTenantId  = document.getElementById('existing_tenant_id');
+        const downpaymentMonthsInput = document.getElementById('downpayment_months');
+        const downpaymentTotal = document.getElementById('downpayment_total');
 
         // Detect if we were opened from a specific room (URL has room_id param)
         const urlParams  = new URLSearchParams(window.location.search);
@@ -186,6 +204,16 @@
             if (sel && sel.value !== '') {
                 rentInput.value = sel.dataset.rent || 0;
             }
+            updateDownpaymentTotal();
+        }
+
+        function updateDownpaymentTotal() {
+            const rent = parseFloat(rentInput.value || '0');
+            const months = parseInt(downpaymentMonthsInput?.value || '0', 10);
+            const total = rent * months;
+            if (downpaymentTotal) {
+                downpaymentTotal.textContent = '₱' + total.toLocaleString(undefined, {maximumFractionDigits: 2});
+            }
         }
 
         if (propertySelect && roomSelect && rentInput) {
@@ -193,7 +221,9 @@
             roomSelect.addEventListener('change', updateRent);
             updateRooms();
             if (rentInput.value === '') updateRent();
+            updateDownpaymentTotal();
         }
+        downpaymentMonthsInput?.addEventListener('input', updateDownpaymentTotal);
     });
 </script>
 @endpush

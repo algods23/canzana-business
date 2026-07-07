@@ -6,6 +6,7 @@ use App\Models\Property;
 use App\Models\Room;
 use App\Models\Tenant;
 use App\Support\Analytics;
+use App\Support\TenantBalance;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -41,7 +42,8 @@ class TenantController extends Controller
             'lease_start' => ['nullable', 'date'],
             'lease_end' => ['nullable', 'date', 'after_or_equal:lease_start'],
             'rent' => ['required', 'numeric', 'min:0'],
-            'balance' => ['required', 'numeric', 'min:0'],
+            'balance' => ['required', 'numeric'],
+            'downpayment_months' => ['nullable', 'integer', 'min:0', 'max:120'],
             'status' => ['required', Rule::in(['active', 'overdue', 'inactive'])],
         ]);
 
@@ -63,12 +65,14 @@ class TenantController extends Controller
                     'status' => 'occupied',
                     'lease_start' => $validated['lease_start'] ?? null,
                     'lease_end' => $validated['lease_end'] ?? null,
+                    'downpayment_months' => $validated['downpayment_months'] ?? 0,
                     'rent' => $validated['rent'] ?? $room->rent,
                 ]);
             }
 
-            unset($validated['existing_tenant_id'], $validated['room_id']);
+            unset($validated['existing_tenant_id'], $validated['room_id'], $validated['downpayment_months']);
             $tenant->update($validated);
+            TenantBalance::sync($tenant->fresh(['rooms.payments']));
 
             return redirect()->route('tenants.show', $tenant)->with('success', 'Tenant updated and room assigned.');
         }
@@ -79,7 +83,8 @@ class TenantController extends Controller
         ]);
 
         $roomId = $validated['room_id'] ?? null;
-        unset($validated['existing_tenant_id'], $validated['room_id']);
+        $downpaymentMonths = $validated['downpayment_months'] ?? 0;
+        unset($validated['existing_tenant_id'], $validated['room_id'], $validated['downpayment_months']);
         $tenant = Tenant::create($validated);
 
         if ($roomId) {
@@ -90,9 +95,12 @@ class TenantController extends Controller
                 'status' => 'occupied',
                 'lease_start' => $validated['lease_start'] ?? null,
                 'lease_end' => $validated['lease_end'] ?? null,
+                'downpayment_months' => $downpaymentMonths,
                 'rent' => $validated['rent'] ?? $room->rent,
             ]);
         }
+
+        TenantBalance::sync($tenant->fresh(['rooms.payments']));
 
         return redirect()->route('tenants.show', $tenant)->with('success', 'Tenant created.');
     }
@@ -118,7 +126,8 @@ class TenantController extends Controller
             'lease_start' => ['nullable', 'date'],
             'lease_end' => ['nullable', 'date', 'after_or_equal:lease_start'],
             'rent' => ['required', 'numeric', 'min:0'],
-            'balance' => ['required', 'numeric', 'min:0'],
+            'balance' => ['required', 'numeric'],
+            'downpayment_months' => ['nullable', 'integer', 'min:0', 'max:120'],
             'status' => ['required', Rule::in(['active', 'overdue', 'inactive'])],
         ]);
 
@@ -131,12 +140,14 @@ class TenantController extends Controller
                 'status' => 'occupied',
                 'lease_start' => $validated['lease_start'] ?? null,
                 'lease_end' => $validated['lease_end'] ?? null,
+                'downpayment_months' => $validated['downpayment_months'] ?? 0,
                 'rent' => $validated['rent'] ?? $room->rent,
             ]);
         }
 
-        unset($validated['room_id']);
+        unset($validated['room_id'], $validated['downpayment_months']);
         $tenant->update($validated);
+        TenantBalance::sync($tenant->fresh(['rooms.payments']));
 
         return redirect()->route('tenants.show', $tenant)->with('success', 'Tenant updated.');
     }
@@ -153,7 +164,7 @@ class TenantController extends Controller
 
     public function index(Request $request)
     {
-        $tenants = Tenant::query()->with(['rooms.buildingModel.propertyModel']);
+        $tenants = Tenant::query()->with(['rooms.buildingModel.propertyModel', 'rooms.payments']);
 
         if ($search = $request->get('search')) {
             $tenants->where(function ($query) use ($search): void {
@@ -166,8 +177,12 @@ class TenantController extends Controller
             $tenants->where('status', $status);
         }
 
+        $tenants = $tenants->orderBy('name')->get();
+        $balances = $tenants->mapWithKeys(fn (Tenant $tenant) => [$tenant->id => TenantBalance::totalBalance($tenant)]);
+
         return view('tenants.index', [
-            'tenants' => $tenants->orderBy('name')->get(),
+            'tenants' => $tenants,
+            'balances' => $balances,
             'filters' => $request->only(['search', 'status']),
         ]);
     }
@@ -188,6 +203,8 @@ class TenantController extends Controller
             'payments' => $tenant->payments,
             'activities' => Analytics::recentActivities(4),
             'latestPaymentByRoom' => $latestPaymentByRoom,
+            'roomBalances' => TenantBalance::roomBreakdowns($tenant),
+            'totalBalance' => TenantBalance::totalBalance($tenant),
         ]);
     }
 

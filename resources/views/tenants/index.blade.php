@@ -43,6 +43,10 @@
                 </thead>
                 <tbody>
                     @foreach($tenants as $tenant)
+                        @php
+                            $displayBalance = $balances[$tenant->id] ?? $tenant->balance;
+                            $displayStatus = $displayBalance > 0 ? 'overdue' : $tenant['status'];
+                        @endphp
                         <tr>
                             <td>
                                 <div class="flex items-center gap-3">
@@ -90,10 +94,10 @@
                                 @endif
                             </td>
                             <td class="font-medium">₱{{ number_format($tenant->rooms->sum('rent')) }}</td>
-                            <td class="{{ $tenant['balance'] > 0 ? 'font-semibold text-rose-600' : 'text-emerald-600' }}">
-                                ₱{{ number_format($tenant['balance']) }}
+                            <td class="{{ $displayBalance > 0 ? 'font-semibold text-rose-600' : 'text-emerald-600' }}">
+                                ₱{{ number_format($displayBalance) }}
                             </td>
-                            <td><x-status-badge :status="$tenant['status']" /></td>
+                            <td><x-status-badge :status="$displayStatus" /></td>
                             <td>
                                 <a href="{{ route('tenants.show', $tenant['id']) }}" class="btn btn-ghost px-2 py-1 text-brand-600">View →</a>
                             </td>
@@ -104,3 +108,4 @@
         </div>
     </div>
 @endsection
+
