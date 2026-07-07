@@ -16,7 +16,10 @@ class TenantController extends Controller
     public function create(): View
     {
         return view('tenants.create', [
-            'tenant' => new Tenant(),
+            'tenant' => new Tenant([
+                'property_id' => request('property_id'),
+                'room_id' => request('room_id'),
+            ]),
             'properties' => Property::query()->orderBy('name')->get(),
             'rooms' => Room::query()->with('buildingModel.propertyModel')->orderBy('unit')->get(),
         ]);

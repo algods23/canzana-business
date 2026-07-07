@@ -28,7 +28,7 @@
         <select id="room_id" name="room_id" class="input-field w-full">
             <option value="">Unassigned</option>
             @foreach($rooms as $room)
-                <option value="{{ $room->id }}" @selected((string) old('room_id', $tenant->room_id) === (string) $room->id)>{{ $room->unit }} — {{ $room->buildingModel?->name }}{{ $room->buildingModel?->propertyModel ? ' / ' . $room->buildingModel->propertyModel->name : '' }}</option>
+                <option value="{{ $room->id }}" data-property-id="{{ $room->buildingModel?->property_id }}" data-rent="{{ $room->rent }}" @selected((string) old('room_id', $tenant->room_id) === (string) $room->id)>{{ $room->unit }} — {{ $room->buildingModel?->name }}{{ $room->buildingModel?->propertyModel ? ' / ' . $room->buildingModel->propertyModel->name : '' }}</option>
             @endforeach
         </select>
     </div>
@@ -38,21 +38,18 @@
     </div>
     <div>
         <label class="mb-1.5 block text-sm font-medium text-slate-700" for="rent">Monthly rent</label>
-        <input id="rent" name="rent" type="number" step="0.01" value="{{ old('rent', $tenant->rent) }}" class="input-field w-full" required>
+        <input id="rent" name="rent" type="number" step="0.01" value="{{ old('rent', $tenant->rent) }}" class="input-field w-full bg-slate-50" readonly required>
         @error('rent')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
     </div>
-    <div>
-        <label class="mb-1.5 block text-sm font-medium text-slate-700" for="balance">Balance</label>
-        <input id="balance" name="balance" type="number" step="0.01" value="{{ old('balance', $tenant->balance) }}" class="input-field w-full" required>
-        @error('balance')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+    <div class="hidden">
+        <input id="balance" name="balance" type="hidden" value="{{ old('balance', $tenant->balance ?? 0) }}">
     </div>
     <div>
         <label class="mb-1.5 block text-sm font-medium text-slate-700" for="lease_start">Lease start</label>
-        <input id="lease_start" name="lease_start" type="date" value="{{ old('lease_start', optional($tenant->lease_start)->format('Y-m-d')) }}" class="input-field w-full">
+        <input id="lease_start" name="lease_start" type="date" value="{{ old('lease_start', optional($tenant->lease_start)->format('Y-m-d') ?: date('Y-m-d')) }}" class="input-field w-full">
     </div>
-    <div>
-        <label class="mb-1.5 block text-sm font-medium text-slate-700" for="lease_end">Lease end</label>
-        <input id="lease_end" name="lease_end" type="date" value="{{ old('lease_end', optional($tenant->lease_end)->format('Y-m-d')) }}" class="input-field w-full">
+    <div class="hidden">
+        <input id="lease_end" name="lease_end" type="hidden" value="{{ old('lease_end', optional($tenant->lease_end)->format('Y-m-d')) }}">
     </div>
     <div class="md:col-span-2">
         <label class="mb-1.5 block text-sm font-medium text-slate-700" for="status">Status</label>
@@ -64,3 +61,51 @@
         @error('status')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const propertySelect = document.getElementById('property_id');
+        const roomSelect = document.getElementById('room_id');
+        const rentInput = document.getElementById('rent');
+        
+        function updateRooms() {
+            const propertyId = propertySelect.value;
+            const options = roomSelect.querySelectorAll('option:not([value=""])');
+            let hasValidOption = false;
+            
+            options.forEach(option => {
+                if (option.dataset.propertyId === propertyId) {
+                    option.style.display = '';
+                    hasValidOption = true;
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+            
+            const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+            if (selectedOption && selectedOption.value !== "" && selectedOption.dataset.propertyId !== propertyId) {
+                roomSelect.value = "";
+                rentInput.value = "";
+            }
+        }
+        
+        function updateRent() {
+            const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+            if (selectedOption && selectedOption.value !== "") {
+                rentInput.value = selectedOption.dataset.rent || 0;
+            }
+        }
+        
+        if (propertySelect && roomSelect && rentInput) {
+            propertySelect.addEventListener('change', updateRooms);
+            roomSelect.addEventListener('change', updateRent);
+            
+            updateRooms();
+            if (rentInput.value === "") {
+                updateRent();
+            }
+        }
+    });
+</script>
+@endpush

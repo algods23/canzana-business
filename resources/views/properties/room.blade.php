@@ -14,9 +14,9 @@
 @endsection
 
 @section('header-actions')
-    <button type="button" class="btn btn-secondary">Edit Unit</button>
+    <a href="{{ route('properties.rooms.edit', [$property['id'], $building['id'], $room['id']]) }}" class="btn btn-secondary">Edit Unit</a>
     @if($room['status'] === 'vacant')
-        <button type="button" class="btn btn-primary">Assign Tenant</button>
+        <a href="{{ route('tenants.create', ['property_id' => $property['id'], 'room_id' => $room['id']]) }}" class="btn btn-primary">Assign Tenant</a>
     @endif
 @endsection
 
@@ -152,7 +152,7 @@
                     <h3 class="mt-3 font-semibold text-slate-900">No Tenant</h3>
                     <p class="mt-1 text-sm text-slate-500">This unit is currently {{ $room['status'] }}</p>
                     @if($room['status'] === 'vacant')
-                        <button type="button" class="btn btn-primary mt-4 w-full">Assign Tenant</button>
+                        <a href="{{ route('tenants.create', ['property_id' => $property['id'], 'room_id' => $room['id']]) }}" class="btn btn-primary mt-4 w-full">Assign Tenant</a>
                     @endif
                 </div>
             @endif

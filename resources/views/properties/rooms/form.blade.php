@@ -7,7 +7,15 @@
     </div>
     <div>
         <label class="mb-1.5 block text-sm font-medium text-slate-700" for="floor">Floor</label>
-        <input id="floor" name="floor" type="number" min="1" max="200" value="{{ old('floor', $room->floor ?? 1) }}" class="input-field w-full" required>
+        <select id="floor" name="floor" class="input-field w-full" required>
+            @if(isset($building) && $building->floors)
+                @for($i = 1; $i <= $building->floors; $i++)
+                    <option value="{{ $i }}" @selected(old('floor', $room->floor ?? 1) == $i)>Floor {{ $i }}</option>
+                @endfor
+            @else
+                <option value="1" selected>Floor 1</option>
+            @endif
+        </select>
         @error('floor')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
     </div>
     <div>

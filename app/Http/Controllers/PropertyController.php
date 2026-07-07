@@ -210,7 +210,7 @@ class PropertyController extends Controller
 
         $validated = $request->validate([
             'unit' => ['required', 'string', 'max:50'],
-            'floor' => ['required', 'integer', 'min:1', 'max:200'],
+            'floor' => ['required', 'integer', 'min:1', 'max:'.$building->floors],
             'type' => ['required', 'string', 'max:50'],
             'size_sqm' => ['required', 'numeric', 'min:1', 'max:10000'],
             'rent' => ['required', 'numeric', 'min:0', 'max:999999.99'],
