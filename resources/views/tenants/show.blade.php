@@ -92,13 +92,33 @@
                 <div class="space-y-4">
                     <h3 class="font-semibold text-slate-900">Leased Units ({{ $tenant->rooms->count() }})</h3>
                     @foreach($tenant->rooms as $room)
-                        <div class="panel p-5">
+                        @php
+                            $latestPayment = $latestPaymentByRoom[$room->id] ?? null;
+                            $isPaid = $latestPayment && $latestPayment->status === 'paid';
+                            $isOverdue = $latestPayment && $latestPayment->status === 'overdue';
+                            $hasPending = $latestPayment && $latestPayment->status === 'pending';
+                            $nextDue = $latestPayment?->due_date 
+                                ? \Carbon\Carbon::parse($latestPayment->due_date)->addMonth()->format('M d, Y')
+                                : ($room->lease_start ? \Carbon\Carbon::parse($room->lease_start)->addMonth()->format('M d, Y') : null);
+                        @endphp
+                        <div class="panel p-5 {{ $isOverdue ? 'border-rose-200' : ($isPaid ? 'border-emerald-200' : '') }}">
                             <div class="flex justify-between items-start mb-3 border-b border-slate-100 pb-3">
                                 <div>
                                     <h4 class="font-bold text-slate-900">Unit {{ $room->unit }}</h4>
                                     <p class="text-xs text-slate-500">{{ $room->buildingModel?->propertyModel?->name }} • {{ $room->buildingModel?->name }}</p>
                                 </div>
-                                <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">Active</span>
+                                <div class="flex flex-col items-end gap-1">
+                                    <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">Active</span>
+                                    @if($isOverdue)
+                                        <span class="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-700">⚠ Overdue</span>
+                                    @elseif($isPaid)
+                                        <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">✓ Paid</span>
+                                    @elseif($hasPending)
+                                        <span class="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">Pending</span>
+                                    @else
+                                        <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">No Payments</span>
+                                    @endif
+                                </div>
                             </div>
                             <dl class="space-y-2 text-sm">
                                 <div class="flex justify-between">
@@ -109,13 +129,32 @@
                                     <dt class="text-slate-500">Lease End</dt>
                                     <dd class="font-medium text-slate-900">{{ $room->lease_end ? \Carbon\Carbon::parse($room->lease_end)->format('M d, Y') : '—' }}</dd>
                                 </div>
+                                @if($latestPayment)
+                                    <div class="flex justify-between items-center border-t border-slate-100 pt-2">
+                                        <dt class="text-slate-500">Last Due</dt>
+                                        <dd class="flex items-center gap-1.5 text-right">
+                                            @if($isPaid)
+                                                <span class="text-xs font-semibold text-emerald-600">✓ Paid</span>
+                                            @elseif($isOverdue)
+                                                <span class="text-xs font-semibold text-rose-600">⚠ Overdue</span>
+                                            @else
+                                                <span class="text-xs font-semibold text-amber-600">⏳ Pending</span>
+                                            @endif
+                                            <span class="font-medium {{ $isOverdue ? 'text-rose-600' : 'text-slate-900' }}">{{ \Carbon\Carbon::parse($latestPayment->due_date)->format('M d, Y') }}</span>
+                                        </dd>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <dt class="text-slate-500">Next Due</dt>
+                                        <dd class="font-medium text-slate-900">{{ $nextDue }}</dd>
+                                    </div>
+                                @endif
                                 <div class="flex justify-between font-semibold mt-2 pt-2 border-t border-slate-50">
                                     <dt class="text-slate-700">Monthly Rent</dt>
                                     <dd class="text-brand-700">₱{{ number_format($room->rent) }}</dd>
                                 </div>
                             </dl>
                             <div class="mt-4 flex gap-2">
-                                <a href="{{ route('payments.create', ['tenant_id' => $tenant->id, 'room_id' => $room->id]) }}" class="btn btn-primary flex-1 py-1.5 text-xs text-center justify-center">Record Payment</a>
+                                <a href="{{ route('payments.create', ['tenant_id' => $tenant->id, 'room_id' => $room->id]) }}" class="btn {{ $isOverdue ? 'bg-rose-600 text-white hover:bg-rose-700 border-rose-600' : 'btn-primary' }} flex-1 py-1.5 text-xs text-center justify-center">{{ $isOverdue ? '⚠ Pay Now' : 'Record Payment' }}</a>
                                 <a href="{{ route('properties.room', [$room->buildingModel->property_id, $room->building_id, $room->id]) }}" class="btn btn-secondary flex-1 py-1.5 text-xs text-center justify-center">View Unit</a>
                             </div>
                         </div>

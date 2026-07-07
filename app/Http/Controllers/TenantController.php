@@ -176,10 +176,18 @@ class TenantController extends Controller
     {
         $tenant->load(['rooms.buildingModel.propertyModel', 'payments' => fn ($query) => $query->orderByDesc('due_date')]);
 
+        // Get latest payment for each room (keyed by room_id)
+        $latestPaymentByRoom = \App\Models\Payment::where('tenant_id', $tenant->id)
+            ->orderByDesc('due_date')
+            ->get()
+            ->groupBy('room_id')
+            ->map(fn ($roomPayments) => $roomPayments->first());
+
         return view('tenants.show', [
             'tenant' => $tenant,
             'payments' => $tenant->payments,
             'activities' => Analytics::recentActivities(4),
+            'latestPaymentByRoom' => $latestPaymentByRoom,
         ]);
     }
 
