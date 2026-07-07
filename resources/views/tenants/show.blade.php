@@ -97,23 +97,19 @@
                             $roomBalance = $roomBalances->first(fn ($breakdown) => $breakdown['room']->id === $room->id);
                             $latestPayment = $latestPaymentByRoom[$room->id] ?? null;
                             $today = \Carbon\Carbon::today();
+                            $roomCurrentBalance = $roomBalance['balance'] ?? 0;
+                            $leaseEnded = $room->lease_end && $today->gt(\Carbon\Carbon::parse($room->lease_end));
 
                             // Calculate next due date
-                            $nextDueDate = null;
-                            if ($latestPayment?->due_date) {
-                                $nextDueDate = \Carbon\Carbon::parse($latestPayment->due_date)->addMonth();
-                            } elseif ($room->lease_start) {
-                                $nextDueDate = \Carbon\Carbon::parse($room->lease_start)->addMonth();
-                            }
+                            $nextDueDate = $roomBalance['next_due_date'] ?? null;
 
                             // If the last payment was paid BUT the next due date has arrived → new cycle is pending
-                            $newCycleDue = $latestPayment && $latestPayment->status === 'paid' && $nextDueDate && $today->gte($nextDueDate);
+                            $isOverdue  = $roomCurrentBalance > 0;
+                            $isPaid     = $roomCurrentBalance <= 0;
+                            $hasPending = false;
 
-                            $isPaid     = $latestPayment && $latestPayment->status === 'paid' && !$newCycleDue;
-                            $isOverdue  = ($latestPayment && $latestPayment->status === 'overdue') || ($newCycleDue && $today->gt($nextDueDate));
-                            $hasPending = ($latestPayment && $latestPayment->status === 'pending') || $newCycleDue;
-
-                            $nextDue = $nextDueDate?->format('M d, Y');
+                            $nextDue = $nextDueDate?->format('M d, Y') ?? ($leaseEnded ? 'Lease ended' : '—');
+                            $renewalEndDate = \Carbon\Carbon::parse($room->lease_end ?? today())->max($today)->addYear()->format('Y-m-d');
                         @endphp
                         <div class="panel p-5 {{ $isOverdue ? 'border-rose-200' : ($isPaid ? 'border-emerald-200' : '') }}">
                             <div class="flex justify-between items-start mb-3 border-b border-slate-100 pb-3">
@@ -125,6 +121,8 @@
                                     <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">Active</span>
                                     @if($isOverdue)
                                         <span class="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-700">⚠ Overdue</span>
+                                    @elseif($leaseEnded)
+                                        <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">Lease Ended</span>
                                     @elseif($isPaid)
                                         <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">✓ Paid</span>
                                     @elseif($hasPending)
@@ -190,9 +188,31 @@
                                 </div>
                             </dl>
                             <div class="mt-4 flex gap-2">
+                                @if($leaseEnded && $roomCurrentBalance <= 0)
+                                    <span class="btn btn-secondary flex-1 py-1.5 text-xs text-center justify-center opacity-70">No Payment Required</span>
+                                @else
                                 <a href="{{ route('payments.create', ['tenant_id' => $tenant->id, 'room_id' => $room->id]) }}" class="btn {{ $isOverdue ? 'bg-rose-600 text-white hover:bg-rose-700 border-rose-600' : 'btn-primary' }} flex-1 py-1.5 text-xs text-center justify-center">{{ $isOverdue ? '⚠ Pay Now' : 'Record Payment' }}</a>
+                                @endif
                                 <a href="{{ route('properties.room', [$room->buildingModel->property_id, $room->building_id, $room->id]) }}" class="btn btn-secondary flex-1 py-1.5 text-xs text-center justify-center">View Unit</a>
                             </div>
+                            @if($leaseEnded)
+                                <form method="POST" action="{{ route('tenants.rooms.renew', [$tenant, $room]) }}" class="mt-3 flex gap-2">
+                                    @csrf
+                                    <input
+                                        type="date"
+                                        name="lease_end"
+                                        value="{{ old('lease_end', $renewalEndDate) }}"
+                                        min="{{ $today->copy()->addDay()->format('Y-m-d') }}"
+                                        class="input-field flex-1 py-1.5 text-xs"
+                                        aria-label="New lease end date for Unit {{ $room->unit }}"
+                                        required
+                                    >
+                                    <button type="submit" class="btn btn-primary py-1.5 text-xs">Renew Lease</button>
+                                </form>
+                                @error('lease_end')
+                                    <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+                                @enderror
+                            @endif
                         </div>
                     @endforeach
                     <div class="panel p-5 bg-brand-50 border-brand-100">

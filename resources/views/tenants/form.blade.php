@@ -117,6 +117,7 @@
         const hiddenTenantId  = document.getElementById('existing_tenant_id');
         const downpaymentMonthsInput = document.getElementById('downpayment_months');
         const downpaymentTotal = document.getElementById('downpayment_total');
+        const today = new Date().toISOString().split('T')[0];
 
         // Detect if we were opened from a specific room (URL has room_id param)
         const urlParams  = new URLSearchParams(window.location.search);
@@ -143,11 +144,11 @@
                 // Fill dates — only when NOT a room-specific assignment
                 // (a new room means a new contract, so lease dates should be entered fresh)
                 if (!lockedRoom) {
-                    document.getElementById('lease_start').value = opt.dataset.leaseStart || '';
+                    document.getElementById('lease_start').value = opt.dataset.leaseStart || today;
                     document.getElementById('lease_end').value   = opt.dataset.leaseEnd   || '';
                 } else {
                     // Reset to blank for a fresh room contract
-                    document.getElementById('lease_start').value = '';
+                    document.getElementById('lease_start').value = today;
                     document.getElementById('lease_end').value   = '';
                 }
 

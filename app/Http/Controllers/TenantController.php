@@ -7,6 +7,7 @@ use App\Models\Room;
 use App\Models\Tenant;
 use App\Support\Analytics;
 use App\Support\TenantBalance;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -160,6 +161,35 @@ class TenantController extends Controller
         $tenant->delete();
 
         return redirect()->route('tenants.index')->with('success', 'Tenant deleted.');
+    }
+
+    public function renewRoomLease(Request $request, Tenant $tenant, Room $room): RedirectResponse
+    {
+        abort_unless((int) $room->tenant_id === (int) $tenant->id, 404);
+
+        $validated = $request->validate([
+            'lease_end' => ['required', 'date', 'after:today'],
+        ]);
+
+        $newLeaseEnd = Carbon::parse($validated['lease_end'])->toDateString();
+
+        $room->update([
+            'lease_end' => $newLeaseEnd,
+            'status' => 'occupied',
+        ]);
+
+        $latestLeaseEnd = $tenant->rooms()
+            ->whereNotNull('lease_end')
+            ->max('lease_end');
+
+        $tenant->update([
+            'lease_end' => $latestLeaseEnd ?? $newLeaseEnd,
+            'status' => 'active',
+        ]);
+
+        return redirect()
+            ->route('tenants.show', $tenant)
+            ->with('success', 'Lease renewed and lease end updated.');
     }
 
     public function index(Request $request)
