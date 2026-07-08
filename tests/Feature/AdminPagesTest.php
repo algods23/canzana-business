@@ -98,7 +98,9 @@ class AdminPagesTest extends TestCase
             ->assertSee('Rental')
             ->assertSee('Fishpond')
             ->assertSee('Fruits')
-            ->assertSee('Add Business');
+            ->assertSee('Daily sales and disbursement expenses')
+            ->assertDontSee('Add Business')
+            ->assertDontSee('Main Menu');
 
         $business = Business::where('user_id', $admin->id)->where('slug', 'rental')->firstOrFail();
 
@@ -106,5 +108,40 @@ class AdminPagesTest extends TestCase
             ->get(route('businesses.open', $business))
             ->assertRedirect(route('dashboard'))
             ->assertSessionHas('selected_business_id', $business->id);
+    }
+
+    public function test_admin_can_record_daily_entry_for_fishpond_and_fruits(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($admin)->get(route('businesses.select'))->assertOk();
+
+        $business = Business::where('user_id', $admin->id)->where('slug', 'fishpond')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->withSession(['selected_business_id' => $business->id])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Sales of the Day')
+            ->assertSee('Disbursement (Expenses)');
+
+        $this->actingAs($admin)
+            ->post(route('businesses.daily-entry.store', $business), [
+                'entry_date' => '2026-07-08',
+                'sales_amount' => 15000,
+                'disbursement_amount' => 4200,
+                'notes' => 'Feed and supplies',
+            ])
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertDatabaseHas('business_daily_entries', [
+            'business_id' => $business->id,
+            'entry_date' => '2026-07-08 00:00:00',
+            'sales_amount' => 15000,
+            'disbursement_amount' => 4200,
+            'notes' => 'Feed and supplies',
+        ]);
     }
 }

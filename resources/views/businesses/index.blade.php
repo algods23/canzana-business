@@ -2,10 +2,7 @@
 
 @section('title', 'Select Business')
 @section('page-title', 'Select Business')
-
-@section('header-actions')
-    <a href="{{ route('businesses.create') }}" class="btn btn-primary">Add Business</a>
-@endsection
+@section('hide-sidebar', 'true')
 
 @section('content')
     <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -13,7 +10,6 @@
             <h2 class="text-2xl font-bold text-slate-900">Open a business</h2>
             <p class="mt-1 text-sm text-slate-500">Choose which business workspace you want to manage.</p>
         </div>
-        <a href="{{ route('businesses.create') }}" class="btn btn-secondary self-start sm:self-auto">Add Business</a>
     </div>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">

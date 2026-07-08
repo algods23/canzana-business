@@ -65,12 +65,12 @@ class BusinessController extends Controller
     {
         $starterBusinesses = [
             ['name' => 'Rental', 'slug' => 'rental', 'type' => 'rental', 'description' => 'Properties, tenants, leases, and payments'],
-            ['name' => 'Fishpond', 'slug' => 'fishpond', 'type' => 'fishpond', 'description' => 'Pond operations, harvests, and expenses'],
-            ['name' => 'Fruits', 'slug' => 'fruits', 'type' => 'fruits', 'description' => 'Fruit inventory, sales, and deliveries'],
+            ['name' => 'Fishpond', 'slug' => 'fishpond', 'type' => 'fishpond', 'description' => 'Daily sales and disbursement expenses'],
+            ['name' => 'Fruits', 'slug' => 'fruits', 'type' => 'fruits', 'description' => 'Daily sales and disbursement expenses'],
         ];
 
         foreach ($starterBusinesses as $business) {
-            $request->user()->businesses()->firstOrCreate(
+            $request->user()->businesses()->updateOrCreate(
                 ['slug' => $business['slug']],
                 $business + ['status' => 'active']
             );

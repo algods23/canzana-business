@@ -24,6 +24,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/businesses/create', [BusinessController::class, 'create'])->middleware('role:admin,manager')->name('businesses.create');
     Route::post('/businesses', [BusinessController::class, 'store'])->middleware('role:admin,manager')->name('businesses.store');
     Route::get('/businesses/{business}/open', [BusinessController::class, 'open'])->name('businesses.open');
+    Route::post('/businesses/{business}/daily-entry', [DashboardController::class, 'storeDailyEntry'])->middleware('role:admin,manager')->name('businesses.daily-entry.store');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

@@ -9,13 +9,18 @@
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+@php
+    $hideSidebar = trim($__env->yieldContent('hide-sidebar')) === 'true';
+@endphp
 <body class="min-h-screen">
-    <div id="sidebar-overlay" class="fixed inset-0 z-40 hidden bg-slate-900/50 backdrop-blur-sm lg:hidden"></div>
+    @unless($hideSidebar)
+        <div id="sidebar-overlay" class="fixed inset-0 z-40 hidden bg-slate-900/50 backdrop-blur-sm lg:hidden"></div>
 
-    @include('components.sidebar')
+        @include('components.sidebar')
+    @endunless
 
-    <div class="lg:pl-64">
-        @include('components.header')
+    <div class="{{ $hideSidebar ? '' : 'lg:pl-64' }}">
+        @include('components.header', ['hideSidebar' => $hideSidebar])
 
         <main class="p-4 sm:p-6 lg:p-8">
             @if(session('success'))

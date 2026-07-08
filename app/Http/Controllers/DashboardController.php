@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Business;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Support\Analytics;
@@ -31,6 +32,19 @@ class DashboardController extends Controller
         if ($business->type !== 'rental') {
             return view('businesses.dashboard', [
                 'business' => $business,
+                'todayEntry' => $business->dailyEntries()
+                    ->whereDate('entry_date', now()->toDateString())
+                    ->first(),
+                'recentEntries' => $business->dailyEntries()
+                    ->latest('entry_date')
+                    ->take(10)
+                    ->get(),
+                'monthlySales' => (float) $business->dailyEntries()
+                    ->whereBetween('entry_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+                    ->sum('sales_amount'),
+                'monthlyDisbursements' => (float) $business->dailyEntries()
+                    ->whereBetween('entry_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+                    ->sum('disbursement_amount'),
             ]);
         }
 
@@ -55,5 +69,32 @@ class DashboardController extends Controller
             'overduePayments' => Payment::query()->with(['tenantModel', 'propertyModel', 'roomModel'])->where('payments.status', 'overdue')->orderBy('due_date')->get(),
             'properties' => $properties,
         ]);
+    }
+
+    public function storeDailyEntry(Request $request, Business $business): RedirectResponse
+    {
+        abort_unless((int) $business->user_id === (int) $request->user()->id, 404);
+        abort_unless(in_array($business->type, ['fishpond', 'fruits'], true), 404);
+
+        $validated = $request->validate([
+            'entry_date' => ['required', 'date'],
+            'sales_amount' => ['required', 'numeric', 'min:0'],
+            'disbursement_amount' => ['required', 'numeric', 'min:0'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $business->dailyEntries()->updateOrCreate(
+            ['entry_date' => $validated['entry_date']],
+            [
+                'user_id' => $request->user()->id,
+                'sales_amount' => $validated['sales_amount'],
+                'disbursement_amount' => $validated['disbursement_amount'],
+                'notes' => $validated['notes'] ?? null,
+            ]
+        );
+
+        $request->session()->put('selected_business_id', $business->id);
+
+        return redirect()->route('dashboard')->with('success', 'Daily entry saved.');
     }
 }
