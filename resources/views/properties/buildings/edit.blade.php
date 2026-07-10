@@ -22,10 +22,17 @@
         <form method="POST" action="{{ route('properties.buildings.update', [$property, $building]) }}" class="space-y-6">
             @method('PUT')
             @include('properties.buildings.form', ['property' => $property, 'building' => $building])
-            <div class="flex items-center justify-end gap-3">
-                <a href="{{ route('properties.building', [$property, $building]) }}" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Update building</button>
+            <div class="flex items-center justify-between mt-6 border-t border-slate-100 pt-6">
+                <button type="button" class="btn btn-secondary text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700" onclick="if(confirm('Are you sure you want to delete this building? All associated rooms will be deleted. This action cannot be undone.')) document.getElementById('delete-building-form').submit();">Delete Building</button>
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('properties.building', [$property, $building]) }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Update building</button>
+                </div>
             </div>
+        </form>
+        <form id="delete-building-form" action="{{ route('properties.buildings.destroy', [$property, $building]) }}" method="POST" class="hidden">
+            @csrf
+            @method('DELETE')
         </form>
     </div>
 @endsection

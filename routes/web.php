@@ -42,11 +42,13 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/{property}/buildings/{building}', [PropertyController::class, 'building'])->name('building');
         Route::get('/{property}/buildings/{building}/edit', [PropertyController::class, 'editBuilding'])->middleware('role:admin,manager')->name('buildings.edit');
         Route::put('/{property}/buildings/{building}', [PropertyController::class, 'updateBuilding'])->middleware('role:admin,manager')->name('buildings.update');
+        Route::delete('/{property}/buildings/{building}', [PropertyController::class, 'destroyBuilding'])->middleware('role:admin,manager')->name('buildings.destroy');
         Route::get('/{property}/buildings/{building}/rooms/create', [PropertyController::class, 'createRoom'])->middleware('role:admin,manager')->name('rooms.create');
         Route::post('/{property}/buildings/{building}/rooms', [PropertyController::class, 'storeRoom'])->middleware('role:admin,manager')->name('rooms.store');
         Route::get('/{property}/buildings/{building}/rooms/{room}', [PropertyController::class, 'room'])->name('room');
         Route::get('/{property}/buildings/{building}/rooms/{room}/edit', [PropertyController::class, 'editRoom'])->middleware('role:admin,manager')->name('rooms.edit');
         Route::put('/{property}/buildings/{building}/rooms/{room}', [PropertyController::class, 'updateRoom'])->middleware('role:admin,manager')->name('rooms.update');
+        Route::delete('/{property}/buildings/{building}/rooms/{room}', [PropertyController::class, 'destroyRoom'])->middleware('role:admin,manager')->name('rooms.destroy');
         Route::post('/{property}/buildings/{building}/rooms/{room}/assign', [PropertyController::class, 'assignTenant'])->middleware('role:admin,manager')->name('rooms.assign');
         Route::post('/{property}/buildings/{building}/rooms/{room}/vacate', [PropertyController::class, 'vacateTenant'])->middleware('role:admin,manager')->name('rooms.vacate');
     });

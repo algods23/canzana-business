@@ -173,6 +173,15 @@ class PropertyController extends Controller
         return redirect()->route('properties.building', [$property, $building])->with('success', 'Building updated.');
     }
 
+    public function destroyBuilding(Property $property, Building $building): RedirectResponse
+    {
+        abort_unless($building->property_id === $property->id, 404);
+
+        $building->delete();
+
+        return redirect()->route('properties.show', $property)->with('success', 'Building deleted.');
+    }
+
     public function room(Property $property, Building $building, Room $room)
     {
         abort_unless($building->property_id === $property->id && $room->building_id === $building->id, 404);
@@ -251,6 +260,15 @@ class PropertyController extends Controller
         $room->update($validated);
 
         return redirect()->route('properties.room', [$property, $building, $room])->with('success', 'Room updated.');
+    }
+
+    public function destroyRoom(Property $property, Building $building, Room $room): RedirectResponse
+    {
+        abort_unless($building->property_id === $property->id && $room->building_id === $building->id, 404);
+
+        $room->delete();
+
+        return redirect()->route('properties.building', [$property, $building])->with('success', 'Room deleted.');
     }
     public function assignTenant(Request $request, Property $property, Building $building, Room $room): RedirectResponse
     {
