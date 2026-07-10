@@ -60,9 +60,13 @@ class Analytics
         for ($i = 0; $i < $months; $i++) {
             $month = $start->copy()->addMonths($i);
 
-            $expected = Payment::whereMonth('due_date', $month->month)
-                ->whereYear('due_date', $month->year)
-                ->sum('amount');
+            // Calculate expected rent only for rooms where the lease had already started by the end of this month
+            $expected = Room::whereHas('currentTenant')
+                ->where(function ($query) use ($month) {
+                    $query->whereNull('lease_start')
+                          ->orWhereDate('lease_start', '<=', $month->copy()->endOfMonth());
+                })
+                ->sum('rent');
 
             $collected = Payment::where('payments.status', 'paid')
                 ->whereMonth('paid_date', $month->month)
