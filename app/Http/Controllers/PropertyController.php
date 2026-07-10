@@ -187,6 +187,7 @@ class PropertyController extends Controller
             'room' => $room,
             'tenant' => $tenant,
             'payments' => $tenant ? $tenant->payments()->latest('due_date')->take(4)->get() : collect(),
+            'roomExpenses' => $room->expenses()->latest('expense_date')->get(),
             'activities' => Analytics::recentActivities(3, $room->id),
         ]);
     }
@@ -278,5 +279,25 @@ class PropertyController extends Controller
         ]);
 
         return redirect()->route('properties.room', [$property, $building, $room])->with('success', 'Tenant removed from unit.');
+    }
+
+    public function toggleMaintenance(Request $request, Property $property, Building $building, Room $room): RedirectResponse
+    {
+        abort_unless($building->property_id === $property->id && $room->building_id === $building->id, 404);
+
+        if ($room->status === 'maintenance') {
+            // Restore to occupied or vacant based on tenant assignment
+            $room->update([
+                'status' => $room->tenant_id ? 'occupied' : 'vacant',
+            ]);
+            $message = 'Room restored from maintenance.';
+        } else {
+            $room->update([
+                'status' => 'maintenance',
+            ]);
+            $message = 'Room set to under maintenance.';
+        }
+
+        return redirect()->route('properties.room', [$property, $building, $room])->with('success', $message);
     }
 }

@@ -5,6 +5,7 @@
         ['route' => 'properties.index', 'label' => 'Properties', 'icon' => 'building'],
         ['route' => 'tenants.index', 'label' => 'Tenants', 'icon' => 'users'],
         ['route' => 'payments.index', 'label' => 'Payments', 'icon' => 'payment'],
+        ['route' => 'expenses.index', 'label' => 'Expenses', 'icon' => 'expense'],
         ['route' => 'reports.index', 'label' => 'Reports', 'icon' => 'chart'],
         ['route' => 'activity.index', 'label' => 'Activity Log', 'icon' => 'activity'],
     ];

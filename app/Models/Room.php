@@ -55,6 +55,11 @@ class Room extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(\App\Models\Expense::class);
+    }
+
     public function getTenantAttribute(): ?string
     {
         return $this->currentTenant?->name;

@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Expense;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\Room;
@@ -29,6 +30,11 @@ class Analytics
             'overdue_amount' => (float) Payment::where('payments.status', 'overdue')->sum('amount'),
             'overdue_count' => Payment::where('payments.status', 'overdue')->count(),
             'active_tenants' => Tenant::where('tenants.status', 'active')->count(),
+            'total_expenses' => (float) Expense::sum('amount'),
+            'expenses_this_month' => (float) Expense::whereMonth('expense_date', now()->month)
+                ->whereYear('expense_date', now()->year)
+                ->sum('amount'),
+            'maintenance_rooms' => Room::where('rooms.status', 'maintenance')->count(),
         ];
     }
 
@@ -63,10 +69,15 @@ class Analytics
                 ->whereYear('paid_date', $month->year)
                 ->sum('amount');
 
+            $expenses = Expense::whereMonth('expense_date', $month->month)
+                ->whereYear('expense_date', $month->year)
+                ->sum('amount');
+
             $chart[] = [
                 'month' => $month->format('M'),
                 'collected' => (float) $collected,
                 'expected' => (float) $expected,
+                'expenses' => (float) $expenses,
             ];
         }
 
@@ -85,6 +96,28 @@ class Analytics
             ->map(fn (Property $property) => [
                 'name' => $property->name,
                 'rate' => $property->occupancy_rate,
+            ])
+            ->all();
+    }
+
+    /**
+     * Expense breakdown by category for reports.
+     */
+    public static function expensesByCategory(?int $months = null): array
+    {
+        $query = Expense::query();
+
+        if ($months) {
+            $query->where('expense_date', '>=', now()->subMonths($months)->startOfMonth());
+        }
+
+        return $query->selectRaw('category, SUM(amount) as total')
+            ->groupBy('category')
+            ->orderByDesc('total')
+            ->get()
+            ->map(fn ($row) => [
+                'category' => $row->category,
+                'total' => (float) $row->total,
             ])
             ->all();
     }

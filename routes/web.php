@@ -6,6 +6,7 @@ use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
@@ -72,6 +73,17 @@ Route::middleware('auth')->group(function (): void {
         Route::delete('/{payment}', [PaymentController::class, 'destroy'])->middleware('role:admin,manager')->name('destroy');
         Route::post('/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->middleware('role:admin,manager')->name('markPaid');
     });
+
+    Route::prefix('expenses')->name('expenses.')->group(function (): void {
+        Route::get('/', [ExpenseController::class, 'index'])->name('index');
+        Route::get('/create', [ExpenseController::class, 'create'])->middleware('role:admin,manager')->name('create');
+        Route::post('/', [ExpenseController::class, 'store'])->middleware('role:admin,manager')->name('store');
+        Route::get('/{expense}/edit', [ExpenseController::class, 'edit'])->middleware('role:admin,manager')->name('edit');
+        Route::put('/{expense}', [ExpenseController::class, 'update'])->middleware('role:admin,manager')->name('update');
+        Route::delete('/{expense}', [ExpenseController::class, 'destroy'])->middleware('role:admin,manager')->name('destroy');
+    });
+
+    Route::post('/properties/{property}/buildings/{building}/rooms/{room}/toggle-maintenance', [PropertyController::class, 'toggleMaintenance'])->middleware('role:admin,manager')->name('properties.rooms.toggle-maintenance');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
 });

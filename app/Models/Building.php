@@ -28,6 +28,11 @@ class Building extends Model
         return $this->hasMany(Room::class);
     }
 
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(\App\Models\Expense::class);
+    }
+
     public function getRoomsCountAttribute(): int
     {
         return (int) ($this->attributes['rooms_count'] ?? $this->rooms()->count());
