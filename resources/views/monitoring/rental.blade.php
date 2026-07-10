@@ -3,13 +3,6 @@
 @section('title', 'Rental Monitoring')
 @section('page-title', 'Rental Monitoring')
 
-@section('header-actions')
-    <button type="button" onclick="openTransactionModal()" class="btn btn-primary">
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-        Add Transaction
-    </button>
-@endsection
-
 @section('content')
     {{-- Date Filter --}}
     <div class="mb-6 panel p-4">
@@ -154,9 +147,15 @@
 
         {{-- Expenses --}}
         <div class="panel">
-            <div class="border-b border-border px-5 py-4">
-                <h3 class="font-semibold text-slate-900">Expenses</h3>
-                <p class="text-xs text-slate-500">Rental-related expenses</p>
+            <div class="flex items-center justify-between border-b border-border px-5 py-4">
+                <div>
+                    <h3 class="font-semibold text-slate-900">Expenses</h3>
+                    <p class="text-xs text-slate-500">Rental-related expenses</p>
+                </div>
+                <a href="{{ route('expenses.create') }}" class="btn btn-primary py-1.5 text-xs">
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                    Record Expense
+                </a>
             </div>
             <div class="max-h-96 overflow-y-auto overflow-x-auto" style="font-size: 10px;">
                 <table class="data-table">

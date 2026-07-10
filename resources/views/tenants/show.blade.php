@@ -15,7 +15,6 @@
         Back
     </button>
     <a href="{{ route('tenants.edit', $tenant) }}" class="btn btn-secondary">Edit Tenant</a>
-    <a href="{{ route('payments.create') }}" class="btn btn-primary">Record Payment</a>
 @endsection
 
 @section('content')

@@ -116,86 +116,6 @@
                     </table>
                 </div>
             </div>
-
-            {{-- Room Expenses --}}
-            <div class="panel">
-                <div class="flex items-center justify-between border-b border-border px-5 py-4">
-                    <div>
-                        <h3 class="font-semibold text-slate-900">Room Expenses</h3>
-                        <p class="text-xs text-slate-500">Expenses recorded for this unit</p>
-                    </div>
-                    <a href="{{ route('expenses.create', ['building_id' => $building['id'], 'room_id' => $room['id'], 'redirect_to' => route('properties.room', [$property['id'], $building['id'], $room['id']])]) }}"
-                       class="btn btn-primary py-1.5 text-xs">
-                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                        Add Expense
-                    </a>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Category</th>
-                                <th>Description</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($roomExpenses as $expense)
-                                <tr>
-                                    <td>{{ \Carbon\Carbon::parse($expense->expense_date)->format('M d, Y') }}</td>
-                                    <td>
-                                        @php
-                                            $catColors = [
-                                                'Maintenance' => 'bg-amber-50 text-amber-700',
-                                                'Utilities' => 'bg-sky-50 text-sky-700',
-                                                'Repairs' => 'bg-rose-50 text-rose-700',
-                                                'Supplies' => 'bg-emerald-50 text-emerald-700',
-                                            ];
-                                        @endphp
-                                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $catColors[$expense->category] ?? 'bg-slate-50 text-slate-700' }}">
-                                            {{ $expense->category }}
-                                        </span>
-                                    </td>
-                                    <td class="font-medium text-slate-900">{{ $expense->description }}</td>
-                                    <td class="font-semibold text-rose-600">₱{{ number_format($expense->amount, 2) }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="py-6 text-center text-sm text-slate-500">No expenses recorded for this unit</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                @if($roomExpenses->count() > 0)
-                    <div class="flex items-center justify-between border-t border-border px-5 py-3 bg-slate-50/50">
-                        <span class="text-sm font-medium text-slate-600">Total Room Expenses</span>
-                        <span class="text-sm font-bold text-rose-600">₱{{ number_format($roomExpenses->sum('amount'), 2) }}</span>
-                    </div>
-                @endif
-            </div>
-
-            {{-- Activity Log --}}
-            <div class="panel">
-                <div class="border-b border-border px-5 py-4">
-                    <h3 class="font-semibold text-slate-900">Activity Log</h3>
-                </div>
-                <div class="divide-y divide-border">
-                    @foreach($activities as $activity)
-                        <div class="flex gap-3 px-5 py-3">
-                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-                                @include('components.icons.' . $activity['icon'], ['class' => 'h-4 w-4'])
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-slate-900">{{ $activity['title'] }}</p>
-                                <p class="text-xs text-slate-500">{{ $activity['description'] }}</p>
-                            </div>
-                            <span class="text-xs text-slate-400">{{ $activity['time'] }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
         </div>
 
         {{-- Tenant Sidebar --}}
@@ -288,32 +208,6 @@
                 @else
                     <p class="mt-3 text-sm text-slate-500">No contract on file. Assign a tenant to create a lease.</p>
                 @endif
-            </div>
-
-            {{-- Room Expense Summary --}}
-            <div class="panel p-6">
-                <h3 class="font-semibold text-slate-900">Expense Summary</h3>
-                <div class="mt-4 space-y-3 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Room Expenses</span>
-                        <span class="font-semibold text-rose-600">₱{{ number_format($roomExpenses->sum('amount'), 2) }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Record Count</span>
-                        <span class="font-medium text-slate-900">{{ $roomExpenses->count() }}</span>
-                    </div>
-                    @if($roomExpenses->count() > 0)
-                        <div class="flex justify-between border-t border-slate-100 pt-3">
-                            <span class="text-slate-500">Latest</span>
-                            <span class="font-medium text-slate-900">{{ \Carbon\Carbon::parse($roomExpenses->first()->expense_date)->format('M d, Y') }}</span>
-                        </div>
-                    @endif
-                </div>
-                <a href="{{ route('expenses.create', ['building_id' => $building['id'], 'room_id' => $room['id'], 'redirect_to' => route('properties.room', [$property['id'], $building['id'], $room['id']])]) }}"
-                   class="btn btn-secondary w-full mt-4 text-center justify-center text-xs">
-                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                    Record Expense
-                </a>
             </div>
         </div>
     </div>
