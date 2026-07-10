@@ -128,13 +128,34 @@ class PropertyController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'in:building,house'],
             'floors' => ['required', 'integer', 'min:1', 'max:200'],
             'status' => ['required', 'in:active,maintenance'],
+            'rental_mode' => ['nullable', 'in:rooms,whole'],
+            'rent' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
         ]);
 
-        $property->buildings()->create($validated);
+        $building = $property->buildings()->create([
+            'name' => $validated['name'],
+            'type' => $validated['type'],
+            'floors' => $validated['floors'],
+            'status' => $validated['status'],
+        ]);
 
-        return redirect()->route('properties.show', $property)->with('success', 'Building added.');
+        if (($validated['rental_mode'] ?? null) === 'whole') {
+            $building->rooms()->create([
+                'unit' => 'Whole Property',
+                'floor' => 1,
+                'type' => $building->type === 'house' ? 'house' : 'building',
+                'size_sqm' => 100, // placeholder
+                'rent' => $validated['rent'] ?? 0,
+                'status' => 'vacant',
+            ]);
+            
+            return redirect()->route('properties.show', $property)->with('success', 'Property added and ready to be rented as a whole.');
+        }
+
+        return redirect()->route('properties.show', $property)->with('success', 'Building added. You can now add individual units.');
     }
 
     public function building(Property $property, Building $building)
@@ -164,6 +185,7 @@ class PropertyController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'in:building,house'],
             'floors' => ['required', 'integer', 'min:1', 'max:200'],
             'status' => ['required', 'in:active,maintenance'],
         ]);

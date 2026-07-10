@@ -70,7 +70,8 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Building Name</th>
+                        <th>Name</th>
+                        <th>Type</th>
                         <th>Floors</th>
                         <th>Rooms</th>
                         <th>Occupied</th>
@@ -90,6 +91,9 @@
                                     </div>
                                     <span class="font-medium text-slate-900">{{ $building['name'] }}</span>
                                 </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-neutral capitalize">{{ $building['type'] ?? 'building' }}</span>
                             </td>
                             <td>{{ $building['floors'] }}</td>
                             <td>{{ $building['rooms_count'] }}</td>
