@@ -1,18 +1,15 @@
 @php
     $navItems = [
         ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'dashboard'],
-        ['route' => 'properties.index', 'label' => 'Properties', 'icon' => 'building'],
-        ['route' => 'tenants.index', 'label' => 'Tenants', 'icon' => 'users'],
-        ['route' => 'payments.index', 'label' => 'Payments', 'icon' => 'payment'],
-        ['route' => 'expenses.index', 'label' => 'Expenses', 'icon' => 'expense'],
-        ['route' => 'reports.index', 'label' => 'Reports', 'icon' => 'chart'],
+        ['route' => 'monitoring.rental', 'label' => 'Rental Monitoring', 'icon' => 'payment'],
+        ['route' => 'monitoring.agriculture', 'label' => 'Agriculture Monitoring', 'icon' => 'expense'],
+        ['route' => 'monitoring.tilapia', 'label' => 'Tilapia Monitoring', 'icon' => 'expense'],
         ['route' => 'activity.index', 'label' => 'Activity Log', 'icon' => 'activity'],
     ];
 
     $monitoringItems = [
-        ['route' => 'monitoring.rental', 'label' => 'Rental Monitoring', 'icon' => 'payment'],
-        ['route' => 'monitoring.agriculture', 'label' => 'Agriculture Monitoring', 'icon' => 'expense'],
-        ['route' => 'monitoring.tilapia', 'label' => 'Tilapia Monitoring', 'icon' => 'expense'],
+        
+        
         ['route' => 'monitoring.conel', 'label' => 'Conel Monitoring', 'icon' => 'payment'],
         ['route' => 'monitoring.128', 'label' => '128 Monitoring', 'icon' => 'payment'],
     ];
