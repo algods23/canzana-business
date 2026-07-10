@@ -17,6 +17,10 @@
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
             Edit Building
         </a>
+        <button type="button" onclick="openDeleteModal()" class="btn btn-danger">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+            Delete Building
+        </button>
         @if(($building['rental_mode'] ?? 'rooms') !== 'whole')
         <a href="{{ route('properties.rooms.create', [$property['id'], $building['id']]) }}" class="btn btn-primary">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
@@ -88,4 +92,49 @@
             @endforeach
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h3 class="mb-4 text-lg font-semibold text-slate-900">Confirm Deletion</h3>
+            <p class="mb-4 text-sm text-slate-600">Are you sure you want to delete this building? This action cannot be undone and will also delete all rooms within this building.</p>
+            
+            <form id="deleteForm" method="POST" action="{{ route('properties.buildings.destroy', [$property['id'], $building['id']]) }}">
+                @csrf
+                @method('DELETE')
+                
+                <div class="mb-4">
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700" for="password">Enter your password to confirm</label>
+                    <input id="password" name="password" type="password" class="input-field w-full" required>
+                    @error('password')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+                
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete Building</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('hidden');
+            document.getElementById('deleteModal').classList.add('flex');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            document.getElementById('deleteModal').classList.remove('flex');
+            document.getElementById('password').value = '';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+    </script>
 @endsection

@@ -56,8 +56,17 @@ class PropertyController extends Controller
         return redirect()->route('properties.show', $property)->with('success', 'Property updated.');
     }
 
-    public function destroy(Property $property): RedirectResponse
+    public function destroy(Request $request, Property $property): RedirectResponse
     {
+        $validated = $request->validate([
+            'password' => ['required'],
+        ]);
+
+        // Verify password
+        if (!\Hash::check($validated['password'], $request->user()->password)) {
+            return back()->withErrors(['password' => 'Incorrect password. Deletion cancelled.'])->withInput();
+        }
+
         $property->delete();
 
         return redirect()->route('properties.index')->with('success', 'Property deleted.');
@@ -215,9 +224,18 @@ class PropertyController extends Controller
         return redirect()->route('properties.building', [$property, $building])->with('success', 'Building updated.');
     }
 
-    public function destroyBuilding(Property $property, Building $building): RedirectResponse
+    public function destroyBuilding(Request $request, Property $property, Building $building): RedirectResponse
     {
         abort_unless($building->property_id === $property->id, 404);
+
+        $validated = $request->validate([
+            'password' => ['required'],
+        ]);
+
+        // Verify password
+        if (!\Hash::check($validated['password'], $request->user()->password)) {
+            return back()->withErrors(['password' => 'Incorrect password. Deletion cancelled.'])->withInput();
+        }
 
         $building->delete();
 
@@ -304,9 +322,18 @@ class PropertyController extends Controller
         return redirect()->route('properties.room', [$property, $building, $room])->with('success', 'Room updated.');
     }
 
-    public function destroyRoom(Property $property, Building $building, Room $room): RedirectResponse
+    public function destroyRoom(Request $request, Property $property, Building $building, Room $room): RedirectResponse
     {
         abort_unless($building->property_id === $property->id && $room->building_id === $building->id, 404);
+
+        $validated = $request->validate([
+            'password' => ['required'],
+        ]);
+
+        // Verify password
+        if (!\Hash::check($validated['password'], $request->user()->password)) {
+            return back()->withErrors(['password' => 'Incorrect password. Deletion cancelled.'])->withInput();
+        }
 
         $room->delete();
 
