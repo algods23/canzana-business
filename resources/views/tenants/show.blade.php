@@ -10,11 +10,6 @@
 @endsection
 
 @section('header-actions')
-    <button type="button" onclick="history.back()" class="btn btn-secondary">
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
-        Back
-    </button>
-    <a href="{{ route('tenants.edit', $tenant) }}" class="btn btn-secondary">Edit Tenant</a>
 @endsection
 
 @section('content')
@@ -28,9 +23,21 @@
                         {{ strtoupper(substr($tenant['name'], 0, 1)) }}
                     </div>
                     <div class="flex-1">
-                        <div class="flex flex-wrap items-center gap-3">
-                            <h2 class="text-xl font-bold text-slate-900">{{ $tenant['name'] }}</h2>
-                            <x-status-badge :status="$displayStatus" />
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <h2 class="text-xl font-bold text-slate-900">{{ $tenant['name'] }}</h2>
+                                <x-status-badge :status="$displayStatus" />
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="{{ route('tenants.edit', $tenant) }}" class="btn btn-secondary py-1.5 text-xs">Edit Tenant</a>
+                                @if($tenant->rooms->count() > 0)
+                                    <a href="{{ route('tenants.create', ['property_id' => $tenant->rooms->first()->buildingModel->property_id, 'room_id' => $tenant->rooms->first()->id]) }}" class="btn btn-secondary py-1.5 text-xs">Change Tenant</a>
+                                    <form action="{{ route('properties.rooms.vacate', [$tenant->rooms->first()->buildingModel->property_id, $tenant->rooms->first()->building_id, $tenant->rooms->first()->id]) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-secondary border-rose-200 py-1.5 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50" onclick="return confirm('Are you sure you want to remove this tenant from their room?');">Remove Tenant</button>
+                                    </form>
+                                @endif
+                            </div>
                         </div>
                         @if($tenant['company'])
                             <p class="mt-0.5 text-sm text-slate-500">{{ $tenant['company'] }}</p>
@@ -120,21 +127,61 @@
                                     <h4 class="font-bold text-slate-900">Unit {{ $room->unit }}</h4>
                                     <p class="text-xs text-slate-500">{{ $room->buildingModel?->propertyModel?->name }} • {{ $room->buildingModel?->name }}</p>
                                 </div>
-                                <div class="flex flex-col items-end gap-1">
-                                    <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">Active</span>
-                                    @if($isOverdue)
-                                        <span class="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-700">⚠ Overdue</span>
-                                    @elseif($leaseEnded)
-                                        <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">Lease Ended</span>
-                                    @elseif($isPaid)
-                                        <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">✓ Paid</span>
-                                    @elseif($hasPending)
-                                        <span class="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">Pending</span>
-                                    @else
-                                        <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">No Payments</span>
-                                    @endif
+                                <div class="flex flex-col items-end gap-2">
+                                    <div class="flex gap-1">
+                                        <form action="{{ route('properties.rooms.toggle-maintenance', [$room->buildingModel->property_id, $room->building_id, $room->id]) }}" method="POST" class="inline">
+                                            @csrf
+                                            @if($room->status === 'maintenance')
+                                                <button type="submit" class="btn btn-secondary text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200 py-1 text-xs"
+                                                        onclick="return confirm('Restore this room from maintenance?')">
+                                                    Restore
+                                                </button>
+                                            @else
+                                                <button type="submit" class="btn btn-secondary text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200 py-1 text-xs"
+                                                        onclick="return confirm('Set this room to under maintenance?')">
+                                                    Maintenance
+                                                </button>
+                                            @endif
+                                        </form>
+                                        <a href="{{ route('properties.rooms.edit', [$room->buildingModel->property_id, $room->building_id, $room->id]) }}" class="btn btn-secondary py-1 text-xs">Edit</a>
+                                    </div>
+                                    <div class="flex flex-col items-end gap-1">
+                                        <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">Active</span>
+                                        @if($isOverdue)
+                                            <span class="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-700">⚠ Overdue</span>
+                                        @elseif($leaseEnded)
+                                            <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">Lease Ended</span>
+                                        @elseif($isPaid)
+                                            <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">✓ Paid</span>
+                                        @elseif($hasPending)
+                                            <span class="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">Pending</span>
+                                        @else
+                                            <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">No Payments</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
+                            
+                            {{-- Room Details --}}
+                            <div class="mb-3 grid grid-cols-2 gap-2 text-xs">
+                                <div class="rounded bg-slate-50 p-2">
+                                    <p class="text-slate-500">Type</p>
+                                    <p class="font-medium text-slate-900">{{ $room->type ?? 'N/A' }}</p>
+                                </div>
+                                <div class="rounded bg-slate-50 p-2">
+                                    <p class="text-slate-500">Floor</p>
+                                    <p class="font-medium text-slate-900">{{ $room->floor ?? 'N/A' }}</p>
+                                </div>
+                                <div class="rounded bg-slate-50 p-2">
+                                    <p class="text-slate-500">Size</p>
+                                    <p class="font-medium text-slate-900">{{ $room->size_sqm ?? 0 }} sqm</p>
+                                </div>
+                                <div class="rounded bg-slate-50 p-2">
+                                    <p class="text-slate-500">Monthly Rent</p>
+                                    <p class="font-medium text-brand-700">₱{{ number_format($room->rent) }}</p>
+                                </div>
+                            </div>
+                            
                             <dl class="space-y-2 text-sm">
                                 <div class="flex justify-between">
                                     <dt class="text-slate-500">Lease Start</dt>
@@ -190,13 +237,38 @@
                                     <dd class="{{ ($roomBalance['balance'] ?? 0) > 0 ? 'text-rose-600' : 'text-emerald-600' }}">₱{{ number_format($roomBalance['balance'] ?? 0) }}</dd>
                                 </div>
                             </dl>
-                            <div class="mt-4 flex gap-2">
-                                @if($leaseEnded && $roomCurrentBalance <= 0)
-                                    <span class="btn btn-secondary flex-1 py-1.5 text-xs text-center justify-center opacity-70">No Payment Required</span>
+                            
+                            {{-- Room Actions --}}
+                            <div class="mt-4 space-y-2">
+                                <div class="flex gap-2">
+                                    @if($leaseEnded && $roomCurrentBalance <= 0)
+                                        <span class="btn btn-secondary flex-1 py-1.5 text-xs text-center justify-center opacity-70">No Payment Required</span>
+                                    @else
+                                    <a href="{{ route('payments.create', ['tenant_id' => $tenant->id, 'room_id' => $room->id]) }}" class="btn {{ $isOverdue ? 'bg-rose-600 text-white hover:bg-rose-700 border-rose-600' : 'btn-primary' }} flex-1 py-1.5 text-xs text-center justify-center">{{ $isOverdue ? '⚠ Pay Now' : 'Record Payment' }}</a>
+                                    @endif
+                                </div>
+                                
+                                {{-- Rental Contract --}}
+                                @if($tenant->contract_path)
+                                    <div class="flex items-center justify-between rounded-lg border border-border p-2">
+                                        <div class="flex items-center gap-2">
+                                            <svg class="h-5 w-5 text-brand-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                                            <span class="text-xs font-medium text-slate-900 truncate">{{ $tenant->contract_name ?? 'Contract Document' }}</span>
+                                        </div>
+                                        <a href="{{ route('tenants.contract.download', $tenant) }}" target="_blank" class="text-brand-600 hover:text-brand-700">
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                        </a>
+                                    </div>
                                 @else
-                                <a href="{{ route('payments.create', ['tenant_id' => $tenant->id, 'room_id' => $room->id]) }}" class="btn {{ $isOverdue ? 'bg-rose-600 text-white hover:bg-rose-700 border-rose-600' : 'btn-primary' }} flex-1 py-1.5 text-xs text-center justify-center">{{ $isOverdue ? '⚠ Pay Now' : 'Record Payment' }}</a>
+                                    <div class="rounded-lg border border-border p-2">
+                                        <p class="text-xs font-medium text-slate-700 mb-2">Rental Contract</p>
+                                        <form method="POST" action="{{ route('tenants.contract.upload', $tenant) }}" enctype="multipart/form-data" class="flex gap-2">
+                                            @csrf
+                                            <input type="file" name="contract" accept=".pdf,.doc,.docx" class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:bg-brand-50 file:px-2 file:py-1 file:text-xs file:font-semibold file:text-brand-700 hover:file:bg-brand-100" required>
+                                            <button type="submit" class="btn btn-secondary py-1.5 text-xs">Upload</button>
+                                        </form>
+                                    </div>
                                 @endif
-                                <a href="{{ route('properties.room', [$room->buildingModel->property_id, $room->building_id, $room->id]) }}" class="btn btn-secondary flex-1 py-1.5 text-xs text-center justify-center">View Unit</a>
                             </div>
                             @if($leaseEnded)
                                 <form method="POST" action="{{ route('tenants.rooms.renew', [$tenant, $room]) }}" class="mt-3 flex gap-2">

@@ -16,25 +16,6 @@
 @endphp
 
 @section('header-actions')
-    <div class="flex gap-2">
-        <form action="{{ route('properties.rooms.toggle-maintenance', [$property['id'], $building['id'], $room['id']]) }}" method="POST" class="inline">
-            @csrf
-            @if($room['status'] === 'maintenance')
-                <button type="submit" class="btn btn-secondary text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200"
-                        onclick="return confirm('Restore this room from maintenance?')">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                    Restore Room
-                </button>
-            @else
-                <button type="submit" class="btn btn-secondary text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200"
-                        onclick="return confirm('Set this room to under maintenance?')">
-                    @include('components.icons.maintenance', ['class' => 'h-4 w-4'])
-                    Under Maintenance
-                </button>
-            @endif
-        </form>
-        <a href="{{ route('properties.rooms.edit', [$property['id'], $building['id'], $room['id']]) }}" class="btn btn-secondary">Edit Unit</a>
-    </div>
 @endsection
 
 @section('content')
@@ -62,7 +43,26 @@
                         </div>
                         <p class="mt-1 text-sm text-slate-500">{{ $building['name'] }} · {{ $property['name'] }}</p>
                     </div>
-                    <p class="text-2xl font-bold text-brand-700">₱{{ number_format($room['rent']) }}<span class="text-sm font-normal text-slate-500">/month</span></p>
+                    <div class="flex items-center gap-2">
+                        <p class="text-2xl font-bold text-brand-700">₱{{ number_format($room['rent']) }}<span class="text-sm font-normal text-slate-500">/month</span></p>
+                        <form action="{{ route('properties.rooms.toggle-maintenance', [$property['id'], $building['id'], $room['id']]) }}" method="POST" class="inline">
+                            @csrf
+                            @if($room['status'] === 'maintenance')
+                                <button type="submit" class="btn btn-secondary text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200 py-1.5 text-xs"
+                                        onclick="return confirm('Restore this room from maintenance?')">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                                    Restore Room
+                                </button>
+                            @else
+                                <button type="submit" class="btn btn-secondary text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200 py-1.5 text-xs"
+                                        onclick="return confirm('Set this room to under maintenance?')">
+                                    @include('components.icons.maintenance', ['class' => 'h-4 w-4'])
+                                    Under Maintenance
+                                </button>
+                            @endif
+                        </form>
+                        <a href="{{ route('properties.rooms.edit', [$property['id'], $building['id'], $room['id']]) }}" class="btn btn-secondary py-1.5 text-xs">Edit Unit</a>
+                    </div>
                 </div>
 
                 <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">

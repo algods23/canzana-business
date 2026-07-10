@@ -92,10 +92,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="flex gap-1">
-                                        <a href="{{ route('tenants.show', $tenant) }}" class="btn btn-secondary py-1 text-xs">View</a>
-                                        <a href="{{ route('tenants.edit', $tenant) }}" class="btn btn-secondary py-1 text-xs">Edit</a>
-                                    </div>
+                                    <a href="{{ route('tenants.show', $tenant) }}" class="btn btn-secondary py-1 text-xs">View</a>
                                 </td>
                             </tr>
                         @empty
