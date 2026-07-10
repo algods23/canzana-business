@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tenant;
 use App\Models\Transaction;
 use App\Models\Expense;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -23,7 +24,7 @@ class MonitoringController extends Controller
         $totalPayable = (float) Tenant::where('balance', '>', 0)->sum('balance');
         
         // Calculate total sales from collected payments
-        $query = \App\Models\Payment::where('status', 'paid');
+        $query = Payment::where('status', 'paid');
         if ($request->filled('date_from')) {
             $query->where('paid_date', '>=', $request->date_from);
         }
@@ -33,22 +34,18 @@ class MonitoringController extends Controller
         $totalSales = (float) $query->sum('amount');
 
         // Calculate sales by payment method
-        $salesByMethod = [];
-        $methods = ['cash', 'gcash', 'bank', 'bpi', 'bdo', 'metrobank'];
-        
-        foreach ($methods as $method) {
-            $query = \App\Models\Payment::where('status', 'paid')->where('method', $method);
-            if ($request->filled('date_from')) {
-                $query->where('paid_date', '>=', $request->date_from);
-            }
-            if ($request->filled('date_to')) {
-                $query->where('paid_date', '<=', $request->date_to);
-            }
-            $amount = (float) $query->sum('amount');
-            if ($amount > 0) {
-                $salesByMethod[$method] = $amount;
-            }
+        $query = Payment::where('status', 'paid');
+        if ($request->filled('date_from')) {
+            $query->where('paid_date', '>=', $request->date_from);
         }
+        if ($request->filled('date_to')) {
+            $query->where('paid_date', '<=', $request->date_to);
+        }
+        $salesByMethod = $query->get(['amount', 'method'])
+            ->groupBy(fn (Payment $payment) => $payment->method ?: 'unspecified')
+            ->map(fn ($payments) => (float) $payments->sum('amount'))
+            ->filter(fn (float $amount) => $amount > 0)
+            ->all();
 
         // Calculate total expenses from expenses table
         $query = Expense::query();
@@ -62,14 +59,60 @@ class MonitoringController extends Controller
 
         $netIncome = $totalSales - $totalExpenses;
 
-        $query = Transaction::byAccount('rental');
+        $query = Transaction::byAccount('rental')->whereIn('module_type', ['income', 'payment']);
         if ($request->filled('date_from')) {
             $query->where('transaction_date', '>=', $request->date_from);
         }
         if ($request->filled('date_to')) {
             $query->where('transaction_date', '<=', $request->date_to);
         }
-        $recentTransactions = $query->latest('transaction_date')->take(10)->get();
+        $rentalTransactions = $query->get()
+            ->map(fn (Transaction $transaction) => (object) [
+                'date' => $transaction->transaction_date,
+                'property_unit' => $transaction->notes,
+                'tenant' => $transaction->description,
+                'received' => $transaction->amount,
+                'description' => $transaction->description,
+                'transaction_date' => $transaction->transaction_date,
+                'amount' => $transaction->amount,
+                'module_type' => $transaction->module_type,
+            ]);
+
+        $query = Payment::with(['tenantModel', 'propertyModel', 'roomModel'])
+            ->where('status', 'paid')
+            ->whereNotNull('paid_date');
+        if ($request->filled('date_from')) {
+            $query->where('paid_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->where('paid_date', '<=', $request->date_to);
+        }
+        $paymentTransactions = $query->get()
+            ->map(function (Payment $payment) {
+                $tenant = $payment->tenantModel?->name;
+                $unit = collect([
+                    $payment->propertyModel?->name,
+                    $payment->roomModel?->unit,
+                ])->filter()->implode(' / ');
+
+                return (object) [
+                    'date' => $payment->paid_date,
+                    'property_unit' => $unit,
+                    'tenant' => $tenant ?: 'N/A',
+                    'received' => $payment->amount,
+                    'description' => trim('Payment received' . ($tenant ? ' - ' . $tenant : '')),
+                    'transaction_date' => $payment->paid_date,
+                    'amount' => $payment->amount,
+                    'module_type' => 'payment',
+                    'notes' => $unit,
+                ];
+            });
+
+        $recentTransactions = collect($rentalTransactions->all())
+            ->merge($paymentTransactions->all())
+            ->sortByDesc(fn ($transaction) => $transaction->transaction_date)
+            ->take(10)
+            ->values();
 
         $query = Expense::with(['buildingModel', 'roomModel']);
         if ($request->filled('date_from')) {

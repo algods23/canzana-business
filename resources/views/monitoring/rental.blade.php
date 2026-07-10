@@ -37,7 +37,7 @@
                 @include('components.icons.expense', ['class' => 'h-5 w-5 text-emerald-600'])
                 <span class="text-sm font-medium text-slate-600">Total Sales</span>
             </div>
-            <p class="mt-2 text-2xl font-bold text-emerald-600">₱{{ number_format($stats['total_sales']) }}</p>
+            <p class="mt-2 text-2xl font-bold text-emerald-600">ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â±{{ number_format($stats['total_sales']) }}</p>
             @if(!empty($salesByMethod))
                 <div class="mt-2 flex flex-wrap gap-2 text-xs">
                     @foreach($salesByMethod as $method => $amount)
@@ -119,27 +119,33 @@
         <div class="panel">
             <div class="border-b border-border px-5 py-4">
                 <h3 class="font-semibold text-slate-900">Recent Transactions</h3>
-                <p class="text-xs text-slate-500">Latest rental transactions</p>
+                <p class="text-xs text-slate-500">Latest rental sales received</p>
             </div>
-            <div class="max-h-96 overflow-y-auto">
-                @forelse($recentTransactions as $transaction)
-                    <div class="flex items-center justify-between border-b border-border px-5 py-3 last:border-0">
-                        <div>
-                            <p class="font-medium text-slate-900">{{ $transaction->description }}</p>
-                            <p class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($transaction->transaction_date)->format('M d, Y') }}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-semibold {{ $transaction->module_type === 'income' ? 'text-emerald-600' : 'text-rose-600' }}">
-                                {{ $transaction->module_type === 'income' ? '+' : '-' }}₱{{ number_format($transaction->amount, 2) }}
-                            </p>
-                            <p class="text-xs text-slate-500">{{ ucfirst($transaction->module_type) }}</p>
-                        </div>
-                    </div>
-                @empty
-                    <div class="px-5 py-8 text-center text-slate-500">
-                        <p>No transactions yet</p>
-                    </div>
-                @endforelse
+            <div class="max-h-96 overflow-y-auto overflow-x-auto">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Property / Unit</th>
+                            <th>Tenant</th>
+                            <th>Received</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($recentTransactions as $transaction)
+                            <tr>
+                                <td>{{ \Carbon\Carbon::parse($transaction->date)->format('M d, Y') }}</td>
+                                <td class="text-sm text-slate-700">{{ $transaction->property_unit ?: 'N/A' }}</td>
+                                <td class="font-medium text-slate-900">{{ $transaction->tenant ?: 'N/A' }}</td>
+                                <td class="font-semibold text-emerald-600">&#8369;{{ number_format($transaction->received, 2) }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="py-12 text-center text-slate-500">No transactions yet</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -149,31 +155,71 @@
                 <h3 class="font-semibold text-slate-900">Expenses</h3>
                 <p class="text-xs text-slate-500">Rental-related expenses</p>
             </div>
-            <div class="max-h-96 overflow-y-auto">
-                @forelse($expenses as $expense)
-                    <div class="flex items-center justify-between border-b border-border px-5 py-3 last:border-0">
-                        <div>
-                            <p class="font-medium text-slate-900">{{ $expense->description }}</p>
-                            <p class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($expense->expense_date)->format('M d, Y') }}</p>
-                            @if($expense->category)
-                                <p class="text-xs text-slate-400">{{ ucfirst($expense->category) }}</p>
-                            @endif
-                            @if($expense->notes)
-                                <p class="text-xs text-slate-400">{{ $expense->notes }}</p>
-                            @endif
-                        </div>
-                        <div class="text-right">
-                            <p class="font-semibold text-rose-600">
-                                -₱{{ number_format($expense->amount, 2) }}
-                            </p>
-                            <p class="text-xs text-slate-500">Expense</p>
-                        </div>
-                    </div>
-                @empty
-                    <div class="px-5 py-8 text-center text-slate-500">
-                        <p>No expenses recorded</p>
-                    </div>
-                @endforelse
+            <div class="max-h-96 overflow-y-auto overflow-x-auto">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Recipient</th>
+                            <th>Building / Room</th>
+                            <th>Amount</th>
+                            <th>Notes</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($expenses as $expense)
+                            @php
+                                $categoryColors = [
+                                    'Maintenance' => 'bg-amber-50 text-amber-700',
+                                    'Utilities' => 'bg-sky-50 text-sky-700',
+                                    'Repairs' => 'bg-rose-50 text-rose-700',
+                                    'Supplies' => 'bg-emerald-50 text-emerald-700',
+                                    'Cleaning' => 'bg-teal-50 text-teal-700',
+                                    'Insurance' => 'bg-indigo-50 text-indigo-700',
+                                    'Tax' => 'bg-purple-50 text-purple-700',
+                                ];
+                                $catClass = $categoryColors[$expense->category] ?? 'bg-slate-50 text-slate-700';
+                            @endphp
+                            <tr>
+                                <td>{{ \Carbon\Carbon::parse($expense->expense_date)->format('M d, Y') }}</td>
+                                <td>
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $catClass }}">
+                                        {{ $expense->category }}
+                                    </span>
+                                </td>
+                                <td class="font-medium text-slate-900">{{ $expense->description }}</td>
+                                <td class="text-sm text-slate-600">{{ $expense->recipient_name ?? 'N/A' }}</td>
+                                <td>
+                                    <p>{{ $expense->buildingModel?->propertyModel?->name }} &middot; {{ $expense->building_name }}</p>
+                                    @if($expense->room_id)
+                                        <p class="text-xs text-slate-500">Unit {{ $expense->room_unit }}</p>
+                                    @else
+                                        <p class="text-xs italic text-slate-400">Whole building</p>
+                                    @endif
+                                </td>
+                                <td class="font-semibold text-rose-600">&#8369;{{ number_format($expense->amount, 2) }}</td>
+                                <td class="max-w-32 truncate text-xs text-slate-500">{{ $expense->notes ?? 'N/A' }}</td>
+                                <td>
+                                    <div class="flex gap-1">
+                                        <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-secondary py-1 text-xs">Edit</a>
+                                        <form action="{{ route('expenses.destroy', $expense) }}" method="POST" class="inline" onsubmit="return confirm('Delete this expense?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="py-12 text-center text-slate-500">No expenses recorded</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
