@@ -30,10 +30,22 @@
     </div>
 
     {{-- Stats Cards --}}
-    <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
+    <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <x-stat-card label="Total Payable" :value="'₱' . number_format($stats['total_payable'])" icon="user" color="rose" />
-        <x-stat-card label="Total Collected" :value="'₱' . number_format($stats['total_collected'])" icon="payment" color="emerald" />
-        <x-stat-card label="Total Sales" :value="'₱' . number_format($stats['total_sales'])" icon="expense" color="sky" />
+        <div class="panel p-4">
+            <div class="flex items-center gap-2">
+                @include('components.icons.expense', ['class' => 'h-5 w-5 text-emerald-600'])
+                <span class="text-sm font-medium text-slate-600">Total Sales</span>
+            </div>
+            <p class="mt-2 text-2xl font-bold text-emerald-600">₱{{ number_format($stats['total_sales']) }}</p>
+            @if(!empty($salesByMethod))
+                <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                    @foreach($salesByMethod as $method => $amount)
+                        <span class="text-slate-600">{{ ucfirst($method) }}: ₱{{ number_format($amount, 2) }}</span>
+                    @endforeach
+                </div>
+            @endif
+        </div>
         <x-stat-card label="Total Expenses" :value="'₱' . number_format($stats['total_expenses'])" icon="expense" color="amber" />
         <x-stat-card label="Net Income" :value="'₱' . number_format($stats['net_income'])" icon="expense" :color="$stats['net_income'] >= 0 ? 'emerald' : 'rose'" />
     </div>
@@ -45,87 +57,61 @@
                 <h3 class="font-semibold text-slate-900">Tenants List</h3>
                 <p class="text-xs text-slate-500">All tenants with their details and payment history</p>
             </div>
-            <div class="divide-y divide-border">
-                @forelse($tenants as $tenant)
-                    <div class="px-5 py-4">
-                        {{-- Tenant Header --}}
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
-                                        {{ strtoupper(substr($tenant->name, 0, 1)) }}
-                                    </div>
-                                    <div>
-                                        <p class="font-semibold text-slate-900">{{ $tenant->name }}</p>
-                                        <p class="text-xs text-slate-500">{{ $tenant->email ?? 'No email' }} · {{ $tenant->phone ?? 'No phone' }}</p>
-                                    </div>
-                                </div>
-                                <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
-                                    <div>
-                                        <span class="text-slate-500">Property:</span>
-                                        <span class="font-medium text-slate-700">{{ $tenant->propertyModel?->name ?? 'N/A' }}</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-slate-500">Room:</span>
-                                        <span class="font-medium text-slate-700">{{ $tenant->roomModel?->unit ?? 'N/A' }}</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-slate-500">Lease:</span>
-                                        <span class="font-medium text-slate-700">
-                                            {{ $tenant->lease_start ? \Carbon\Carbon::parse($tenant->lease_start)->format('M d, Y') : 'N/A' }} -
-                                            {{ $tenant->lease_end ? \Carbon\Carbon::parse($tenant->lease_end)->format('M d, Y') : 'N/A' }}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span class="text-slate-500">Rent:</span>
-                                        <span class="font-medium text-slate-700">₱{{ number_format($tenant->rent ?? 0, 2) }}/mo</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="text-right ml-4">
-                                <p class="text-2xl font-bold {{ $tenant->balance > 0 ? 'text-rose-600' : 'text-emerald-600' }}">
-                                    ₱{{ number_format($tenant->balance, 2) }}
-                                </p>
-                                <p class="text-xs text-slate-500">{{ $tenant->balance > 0 ? 'Payable Balance' : 'Fully Paid' }}</p>
-                                <p class="text-xs font-medium {{ $tenant->status === 'active' ? 'text-emerald-600' : 'text-slate-500' }}">
-                                    {{ ucfirst($tenant->status ?? 'Unknown') }}
-                                </p>
-                            </div>
-                        </div>
-
-                        {{-- Payment History --}}
-                        <div class="mt-4 rounded-lg bg-slate-50 p-3">
-                            <p class="mb-2 text-xs font-semibold text-slate-700">Payment History</p>
-                            @if($tenant->payments && $tenant->payments->count() > 0)
-                                <div class="space-y-2">
-                                    @foreach($tenant->payments->take(5) as $payment)
-                                        <div class="flex items-center justify-between text-xs border-b border-slate-200 pb-2 last:border-0 last:pb-0">
-                                            <div>
-                                                <p class="font-medium text-slate-900">{{ \Carbon\Carbon::parse($payment->due_date)->format('M d, Y') }}</p>
-                                                <p class="text-slate-500">{{ $payment->method ?? 'N/A' }}</p>
-                                            </div>
-                                            <div class="text-right">
-                                                <p class="font-semibold {{ $payment->status === 'paid' ? 'text-emerald-600' : 'text-rose-600' }}">
-                                                    ₱{{ number_format($payment->amount, 2) }}
-                                                </p>
-                                                <p class="text-slate-500">{{ ucfirst($payment->status) }}</p>
-                                            </div>
+            <div class="overflow-x-auto">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Property / Unit</th>
+                            <th>Tenant</th>
+                            <th>Contact</th>
+                            <th>Monthly Rent</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($tenants as $tenant)
+                            <tr>
+                                <td>
+                                    <p class="text-sm text-slate-900">{{ $tenant->propertyModel?->name ?? 'N/A' }}</p>
+                                    <p class="text-xs text-slate-500">{{ $tenant->roomModel?->unit ?? 'N/A' }}</p>
+                                </td>
+                                <td>
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
+                                            {{ strtoupper(substr($tenant->name, 0, 1)) }}
                                         </div>
-                                    @endforeach
-                                </div>
-                                @if($tenant->payments->count() > 5)
-                                    <p class="mt-2 text-xs text-slate-500">+{{ $tenant->payments->count() - 5 }} more payments</p>
-                                @endif
-                            @else
-                                <p class="text-xs text-slate-500 italic">No payment history</p>
-                            @endif
-                        </div>
-                    </div>
-                @empty
-                    <div class="px-5 py-8 text-center text-slate-500">
-                        <p>No tenants found</p>
-                    </div>
-                @endforelse
+                                        <span class="font-medium text-slate-900">{{ $tenant->name }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p class="text-sm text-slate-900">{{ $tenant->email ?? 'N/A' }}</p>
+                                    <p class="text-xs text-slate-500">{{ $tenant->phone ?? 'N/A' }}</p>
+                                </td>
+                                <td class="font-medium text-slate-900">₱{{ number_format($tenant->rent ?? 0, 2) }}</td>
+                                <td class="font-semibold {{ $tenant->balance > 0 ? 'text-rose-600' : 'text-emerald-600' }}">
+                                    ₱{{ number_format($tenant->balance, 2) }}
+                                </td>
+                                <td>
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $tenant->status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700' }}">
+                                        {{ ucfirst($tenant->status ?? 'Unknown') }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="flex gap-1">
+                                        <a href="{{ route('tenants.show', $tenant) }}" class="btn btn-secondary py-1 text-xs">View</a>
+                                        <a href="{{ route('tenants.edit', $tenant) }}" class="btn btn-secondary py-1 text-xs">Edit</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="py-12 text-center text-slate-500">No tenants found</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -152,6 +138,40 @@
                 @empty
                     <div class="px-5 py-8 text-center text-slate-500">
                         <p>No transactions yet</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- Expenses --}}
+        <div class="panel">
+            <div class="border-b border-border px-5 py-4">
+                <h3 class="font-semibold text-slate-900">Expenses</h3>
+                <p class="text-xs text-slate-500">Rental-related expenses</p>
+            </div>
+            <div class="max-h-96 overflow-y-auto">
+                @forelse($expenses as $expense)
+                    <div class="flex items-center justify-between border-b border-border px-5 py-3 last:border-0">
+                        <div>
+                            <p class="font-medium text-slate-900">{{ $expense->description }}</p>
+                            <p class="text-xs text-slate-500">{{ \Carbon\Carbon::parse($expense->expense_date)->format('M d, Y') }}</p>
+                            @if($expense->category)
+                                <p class="text-xs text-slate-400">{{ ucfirst($expense->category) }}</p>
+                            @endif
+                            @if($expense->notes)
+                                <p class="text-xs text-slate-400">{{ $expense->notes }}</p>
+                            @endif
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-rose-600">
+                                -₱{{ number_format($expense->amount, 2) }}
+                            </p>
+                            <p class="text-xs text-slate-500">Expense</p>
+                        </div>
+                    </div>
+                @empty
+                    <div class="px-5 py-8 text-center text-slate-500">
+                        <p>No expenses recorded</p>
                     </div>
                 @endforelse
             </div>

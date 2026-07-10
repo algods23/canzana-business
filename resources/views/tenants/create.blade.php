@@ -10,19 +10,10 @@
 @section('page-title', $pageTitle)
 
 @section('header-actions')
-    @if(request()->has('room_id') && request('property_id'))
-        {{-- Back to the room if we came from one --}}
-        @php
-            $backRoom = \App\Models\Room::with('buildingModel')->find(request('room_id'));
-        @endphp
-        @if($backRoom)
-            <a href="{{ route('properties.room', [$backRoom->buildingModel->property_id, $backRoom->building_id, $backRoom->id]) }}" class="btn btn-secondary">Cancel</a>
-        @else
-            <a href="{{ route('tenants.index') }}" class="btn btn-secondary">Cancel</a>
-        @endif
-    @else
-        <a href="{{ route('tenants.index') }}" class="btn btn-secondary">Cancel</a>
-    @endif
+    <button type="button" onclick="history.back()" class="btn btn-secondary">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+        Back
+    </button>
 @endsection
 
 @section('content')

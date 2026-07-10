@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Tenant;
 use App\Models\Transaction;
+use App\Models\Expense;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -18,34 +19,46 @@ class MonitoringController extends Controller
             ->orderBy('name')
             ->get();
 
-        $totalPayable = Tenant::sum('balance');
+        // Calculate total payable (only positive balances)
+        $totalPayable = (float) Tenant::where('balance', '>', 0)->sum('balance');
         
-        $query = Transaction::byAccount('rental')->where('module_type', 'payment')->where('status', 'completed');
+        // Calculate total sales from collected payments
+        $query = \App\Models\Payment::where('status', 'paid');
         if ($request->filled('date_from')) {
-            $query->where('transaction_date', '>=', $request->date_from);
+            $query->where('paid_date', '>=', $request->date_from);
         }
         if ($request->filled('date_to')) {
-            $query->where('transaction_date', '<=', $request->date_to);
+            $query->where('paid_date', '<=', $request->date_to);
         }
-        $totalCollected = $query->sum('amount');
+        $totalSales = (float) $query->sum('amount');
 
-        $query = Transaction::byAccount('rental')->where('module_type', 'income')->where('status', 'completed');
-        if ($request->filled('date_from')) {
-            $query->where('transaction_date', '>=', $request->date_from);
+        // Calculate sales by payment method
+        $salesByMethod = [];
+        $methods = ['cash', 'gcash', 'bank', 'bpi', 'bdo', 'metrobank'];
+        
+        foreach ($methods as $method) {
+            $query = \App\Models\Payment::where('status', 'paid')->where('method', $method);
+            if ($request->filled('date_from')) {
+                $query->where('paid_date', '>=', $request->date_from);
+            }
+            if ($request->filled('date_to')) {
+                $query->where('paid_date', '<=', $request->date_to);
+            }
+            $amount = (float) $query->sum('amount');
+            if ($amount > 0) {
+                $salesByMethod[$method] = $amount;
+            }
         }
-        if ($request->filled('date_to')) {
-            $query->where('transaction_date', '<=', $request->date_to);
-        }
-        $totalSales = $query->sum('amount');
 
-        $query = Transaction::byAccount('rental')->where('module_type', 'expense')->where('status', 'completed');
+        // Calculate total expenses from expenses table
+        $query = Expense::query();
         if ($request->filled('date_from')) {
-            $query->where('transaction_date', '>=', $request->date_from);
+            $query->where('expense_date', '>=', $request->date_from);
         }
         if ($request->filled('date_to')) {
-            $query->where('transaction_date', '<=', $request->date_to);
+            $query->where('expense_date', '<=', $request->date_to);
         }
-        $totalExpenses = $query->sum('amount');
+        $totalExpenses = (float) $query->sum('amount');
 
         $netIncome = $totalSales - $totalExpenses;
 
@@ -58,16 +71,26 @@ class MonitoringController extends Controller
         }
         $recentTransactions = $query->latest('transaction_date')->take(10)->get();
 
+        $query = Expense::with(['buildingModel', 'roomModel']);
+        if ($request->filled('date_from')) {
+            $query->where('expense_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->where('expense_date', '<=', $request->date_to);
+        }
+        $expenses = $query->latest('expense_date')->get();
+
         return view('monitoring.rental', [
             'tenants' => $tenants,
             'stats' => [
-                'total_payable' => (float) $totalPayable,
-                'total_collected' => (float) $totalCollected,
+                'total_payable' => $totalPayable,
                 'total_sales' => $totalSales,
                 'total_expenses' => $totalExpenses,
                 'net_income' => $netIncome,
             ],
+            'salesByMethod' => $salesByMethod,
             'recentTransactions' => $recentTransactions,
+            'expenses' => $expenses,
             'filters' => $request->only(['date_from', 'date_to']),
         ]);
     }
