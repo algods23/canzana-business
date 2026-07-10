@@ -219,16 +219,6 @@
                             @endif
                         </div>
                     @endforeach
-                    <div class="panel p-5 bg-brand-50 border-brand-100">
-                        <div class="flex justify-between font-bold text-base">
-                            <span class="text-brand-900">Total Monthly Payable</span>
-                            <span class="text-brand-700">₱{{ number_format($tenant->rooms->sum('rent')) }}</span>
-                        </div>
-                        <div class="mt-2 flex justify-between text-sm font-semibold">
-                            <span class="text-brand-900">Total Current Balance</span>
-                            <span class="{{ $totalBalance > 0 ? 'text-rose-600' : 'text-emerald-600' }}">₱{{ number_format($totalBalance) }}</span>
-                        </div>
-                    </div>
                 </div>
             @else
                 <div class="panel p-6 text-center text-slate-500">
@@ -246,20 +236,6 @@
                     <button type="button" class="btn mt-4 w-full bg-rose-600 text-white hover:bg-rose-700">Send Reminder</button>
                 </div>
             @endif
-
-            <div class="panel">
-                <div class="border-b border-border px-5 py-4">
-                    <h3 class="font-semibold text-slate-900">Recent Activity</h3>
-                </div>
-                <div class="divide-y divide-border">
-                    @foreach($activities as $activity)
-                        <div class="px-5 py-3">
-                            <p class="text-sm font-medium text-slate-900">{{ $activity['title'] }}</p>
-                            <p class="text-xs text-slate-500">{{ $activity['time'] }}</p>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
         </div>
     </div>
 @endsection

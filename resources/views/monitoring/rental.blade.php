@@ -37,7 +37,7 @@
                 @include('components.icons.expense', ['class' => 'h-5 w-5 text-emerald-600'])
                 <span class="text-sm font-medium text-slate-600">Total Sales</span>
             </div>
-            <p class="mt-2 text-2xl font-bold text-emerald-600">ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â±{{ number_format($stats['total_sales']) }}</p>
+            <p class="mt-2 text-2xl font-bold text-emerald-600">₱{{ number_format($stats['total_sales']) }}</p>
             @if(!empty($salesByMethod))
                 <div class="mt-2 flex flex-wrap gap-2 text-xs">
                     @foreach($salesByMethod as $method => $amount)
@@ -114,6 +114,9 @@
                 </table>
             </div>
         </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
 
         {{-- Recent Transactions --}}
         <div class="panel">
@@ -121,7 +124,7 @@
                 <h3 class="font-semibold text-slate-900">Recent Transactions</h3>
                 <p class="text-xs text-slate-500">Latest rental sales received</p>
             </div>
-            <div class="max-h-96 overflow-y-auto overflow-x-auto">
+            <div class="max-h-96 overflow-y-auto overflow-x-auto" style="font-size: 10px;">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -135,7 +138,7 @@
                         @forelse($recentTransactions as $transaction)
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($transaction->date)->format('M d, Y') }}</td>
-                                <td class="text-sm text-slate-700">{{ $transaction->property_unit ?: 'N/A' }}</td>
+                                <td class="text-slate-700">{{ $transaction->property_unit ?: 'N/A' }}</td>
                                 <td class="font-medium text-slate-900">{{ $transaction->tenant ?: 'N/A' }}</td>
                                 <td class="font-semibold text-emerald-600">&#8369;{{ number_format($transaction->received, 2) }}</td>
                             </tr>
@@ -155,7 +158,7 @@
                 <h3 class="font-semibold text-slate-900">Expenses</h3>
                 <p class="text-xs text-slate-500">Rental-related expenses</p>
             </div>
-            <div class="max-h-96 overflow-y-auto overflow-x-auto">
+            <div class="max-h-96 overflow-y-auto overflow-x-auto" style="font-size: 10px;">
                 <table class="data-table">
                     <thead>
                         <tr>
