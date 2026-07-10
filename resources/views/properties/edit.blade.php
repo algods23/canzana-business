@@ -4,7 +4,6 @@
 @section('page-title', 'Edit Property')
 
 @section('header-actions')
-    <a href="{{ route('properties.show', $property) }}" class="btn btn-secondary">Back</a>
 @endsection
 
 @section('content')
