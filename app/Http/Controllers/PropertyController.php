@@ -7,6 +7,7 @@ use App\Models\Property;
 use App\Models\Room;
 use Illuminate\Http\RedirectResponse;
 use App\Support\Analytics;
+use App\Support\TenantBalance;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -246,18 +247,35 @@ class PropertyController extends Controller
     {
         abort_unless($building->property_id === $property->id && $room->building_id === $building->id, 404);
 
-        $room->load(['currentTenant.payments']);
+        $room->load(['currentTenant.rooms.payments']);
 
         $tenant = $room->currentTenant;
+
+        // Build per-room balance breakdown for this specific room only
+        $roomBalance = null;
+        $latestPayment = null;
+        $totalBalance = 0;
+        if ($tenant) {
+            $breakdowns = TenantBalance::roomBreakdowns($tenant);
+            $roomBalance = $breakdowns->first(fn ($b) => $b['room']->id === $room->id);
+            $latestPayment = \App\Models\Payment::where('tenant_id', $tenant->id)
+                ->where('room_id', $room->id)
+                ->orderByDesc('due_date')
+                ->first();
+            $totalBalance = TenantBalance::totalBalance($tenant);
+        }
 
         return view('properties.room', [
             'property' => $property,
             'building' => $building,
             'room' => $room,
             'tenant' => $tenant,
-            'payments' => $tenant ? $tenant->payments()->latest('due_date')->take(4)->get() : collect(),
+            'payments' => $tenant ? $tenant->payments()->where('room_id', $room->id)->orderByDesc('due_date')->get() : collect(),
             'roomExpenses' => $room->expenses()->latest('expense_date')->get(),
             'activities' => Analytics::recentActivities(3, $room->id),
+            'roomBalance' => $roomBalance,
+            'latestPayment' => $latestPayment,
+            'totalBalance' => $totalBalance,
         ]);
     }
 

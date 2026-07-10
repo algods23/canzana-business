@@ -15,7 +15,13 @@ class DashboardController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         if (! $request->session()->has('selected_business_id')) {
-            return redirect()->route('businesses.select');
+            // Auto-select the rental business for this user
+            $rentalBusiness = $request->user()->businesses()->where('type', 'rental')->first();
+            if ($rentalBusiness) {
+                $request->session()->put('selected_business_id', $rentalBusiness->id);
+            } else {
+                return redirect()->route('businesses.select');
+            }
         }
 
         $business = $request->user()
@@ -24,9 +30,15 @@ class DashboardController extends Controller
             ->first();
 
         if (! $business) {
-            $request->session()->forget('selected_business_id');
-
-            return redirect()->route('businesses.select');
+            // Try to auto-select rental business as fallback
+            $rentalBusiness = $request->user()->businesses()->where('type', 'rental')->first();
+            if ($rentalBusiness) {
+                $request->session()->put('selected_business_id', $rentalBusiness->id);
+                $business = $rentalBusiness;
+            } else {
+                $request->session()->forget('selected_business_id');
+                return redirect()->route('businesses.select');
+            }
         }
 
         if ($business->type !== 'rental') {

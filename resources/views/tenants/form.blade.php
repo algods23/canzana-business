@@ -38,8 +38,8 @@
         @error('name')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
     </div>
     <div>
-        <label class="mb-1.5 block text-sm font-medium text-slate-700" for="email">Email</label>
-        <input id="email" name="email" type="email" value="{{ old('email', $tenant->email) }}" class="input-field w-full" required>
+        <label class="mb-1.5 block text-sm font-medium text-slate-700" for="email">Email <span class="text-xs font-normal text-slate-400">(optional)</span></label>
+        <input id="email" name="email" type="email" value="{{ old('email', $tenant->email) }}" class="input-field w-full">
         @error('email')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
     </div>
     <div>

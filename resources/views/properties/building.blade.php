@@ -64,8 +64,11 @@
                         'vacant' => 'border-slate-200 bg-slate-50/50 hover:border-slate-300',
                         'maintenance' => 'border-amber-200 bg-amber-50/50 hover:border-amber-300',
                     ];
+                    $roomUrl = $room->currentTenant
+                        ? route('tenants.show', $room->currentTenant)
+                        : route('properties.room', [$property['id'], $building['id'], $room['id']]);
                 @endphp
-                <a href="{{ route('properties.room', [$property['id'], $building['id'], $room['id']]) }}"
+                <a href="{{ $roomUrl }}"
                    class="rounded-xl border p-4 transition-all hover:shadow-md {{ $statusColors[$displayStatus] ?? $statusColors['vacant'] }}">
                     <div class="flex items-start justify-between">
                         <div>

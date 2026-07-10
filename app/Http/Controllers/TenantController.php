@@ -37,7 +37,7 @@ class TenantController extends Controller
             'property_id' => ['required', 'exists:properties,id'],
             'room_id' => ['nullable', 'exists:rooms,id'],
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'company' => ['nullable', 'string', 'max:255'],
             'lease_start' => ['nullable', 'date'],
@@ -54,7 +54,7 @@ class TenantController extends Controller
 
             // Validate unique email ignoring this tenant
             $request->validate([
-                'email' => [Rule::unique('tenants', 'email')->ignore($tenant->id)],
+                'email' => ['nullable', 'email', Rule::unique('tenants', 'email')->ignore($tenant->id)],
             ]);
 
             // If a room is selected, assign it (don't vacate old rooms — multi-room support)
@@ -80,7 +80,7 @@ class TenantController extends Controller
 
         // Creating a new tenant
         $request->validate([
-            'email' => ['unique:tenants,email'],
+            'email' => ['nullable', 'email', 'unique:tenants,email'],
         ]);
 
         $roomId = $validated['room_id'] ?? null;
@@ -121,7 +121,7 @@ class TenantController extends Controller
             'property_id' => ['required', 'exists:properties,id'],
             'room_id' => ['nullable', 'exists:rooms,id'],
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('tenants', 'email')->ignore($tenant->id)],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('tenants', 'email')->ignore($tenant->id)],
             'phone' => ['nullable', 'string', 'max:255'],
             'company' => ['nullable', 'string', 'max:255'],
             'lease_start' => ['nullable', 'date'],

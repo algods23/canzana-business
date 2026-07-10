@@ -163,7 +163,7 @@
                             </div>
                             
                             {{-- Room Details --}}
-                            <div class="mb-3 grid grid-cols-2 gap-2 text-xs">
+                            <div class="mb-3 grid grid-cols-3 gap-2 text-xs">
                                 <div class="rounded bg-slate-50 p-2">
                                     <p class="text-slate-500">Type</p>
                                     <p class="font-medium text-slate-900">{{ $room->type ?? 'N/A' }}</p>
@@ -175,10 +175,6 @@
                                 <div class="rounded bg-slate-50 p-2">
                                     <p class="text-slate-500">Size</p>
                                     <p class="font-medium text-slate-900">{{ $room->size_sqm ?? 0 }} sqm</p>
-                                </div>
-                                <div class="rounded bg-slate-50 p-2">
-                                    <p class="text-slate-500">Monthly Rent</p>
-                                    <p class="font-medium text-brand-700">₱{{ number_format($room->rent) }}</p>
                                 </div>
                             </div>
                             
@@ -249,27 +245,25 @@
                                 </div>
                                 
                                 {{-- Rental Contract --}}
-                                @if($tenant->contract_path)
-                                    <div class="flex items-center justify-between rounded-lg border border-border p-2">
-                                        <div class="flex items-center gap-2">
-                                            <svg class="h-5 w-5 text-brand-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
-                                            <span class="text-xs font-medium text-slate-900 truncate">{{ $tenant->contract_name ?? 'Contract Document' }}</span>
+                                <div class="mt-4 pt-4 border-t border-slate-50">
+                                    <p class="text-xs font-semibold text-slate-700 mb-2">Rental Contract</p>
+                                    @if($tenant->contract_path)
+                                        <div class="flex items-center justify-between rounded-lg border border-border p-2 mb-2">
+                                            <div class="flex items-center gap-2">
+                                                <svg class="h-5 w-5 text-brand-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                                                <span class="text-xs font-medium text-slate-900 truncate">{{ $tenant->contract_name ?? 'Contract Document' }}</span>
+                                            </div>
+                                            <a href="{{ route('tenants.contract.download', $tenant) }}" target="_blank" class="text-brand-600 hover:text-brand-700">
+                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                            </a>
                                         </div>
-                                        <a href="{{ route('tenants.contract.download', $tenant) }}" target="_blank" class="text-brand-600 hover:text-brand-700">
-                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                                        </a>
-                                    </div>
-                                @else
-                                    <div class="rounded-lg border border-border p-2">
-                                        <p class="text-xs font-medium text-slate-700 mb-2">Rental Contract</p>
-                                        <form method="POST" action="{{ route('tenants.contract.upload', $tenant) }}" enctype="multipart/form-data" class="flex gap-2">
-                                            @csrf
-                                            <input type="file" name="contract" accept=".pdf,.doc,.docx" class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:bg-brand-50 file:px-2 file:py-1 file:text-xs file:font-semibold file:text-brand-700 hover:file:bg-brand-100" required>
-                                            <button type="submit" class="btn btn-secondary py-1.5 text-xs">Upload</button>
-                                        </form>
-                                    </div>
-                                @endif
-                            </div>
+                                    @endif
+                                    <form method="POST" action="{{ route('tenants.contract.upload', $tenant) }}" enctype="multipart/form-data" class="flex gap-2">
+                                        @csrf
+                                        <input type="file" name="contract" accept=".pdf,.doc,.docx" class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:bg-brand-50 file:px-2 file:py-1 file:text-xs file:font-semibold file:text-brand-700 hover:file:bg-brand-100" required>
+                                        <button type="submit" class="btn btn-secondary py-1.5 text-xs">{{ $tenant->contract_path ? 'Re-upload' : 'Upload' }}</button>
+                                    </form>
+                                </div>
                             @if($leaseEnded)
                                 <form method="POST" action="{{ route('tenants.rooms.renew', [$tenant, $room]) }}" class="mt-3 flex gap-2">
                                     @csrf

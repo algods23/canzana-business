@@ -12,7 +12,7 @@ use App\Http\Controllers\TenantController;
 use App\Http\Controllers\MonitoringController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route('businesses.select'));
+Route::get('/', fn () => redirect()->route('dashboard'));
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

@@ -23,9 +23,9 @@
             @auth
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
-                        <span class="hidden sm:inline">{{ auth()->user()->name }}</span>
-                        <span class="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-brand-700">{{ auth()->user()->role }}</span>
+                    <button type="submit" class="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-rose-600 hover:border-rose-200">
+                        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" /></svg>
+                        <span class="hidden sm:inline">Logout</span>
                     </button>
                 </form>
             @endauth

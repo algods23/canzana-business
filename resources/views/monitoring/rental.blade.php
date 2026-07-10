@@ -46,9 +46,14 @@
     <div class="grid gap-6 lg:grid-cols-1">
         {{-- Tenants List with Details --}}
         <div class="panel">
-            <div class="border-b border-border px-5 py-4">
-                <h3 class="font-semibold text-slate-900">Tenants List</h3>
-                <p class="text-xs text-slate-500">All tenants with their details and payment history</p>
+            <div class="flex items-center justify-between border-b border-border px-5 py-4">
+                <div>
+                    <h3 class="font-semibold text-slate-900">Tenants List</h3>
+                    <p class="text-xs text-slate-500">All tenants with their details and payment history</p>
+                </div>
+                <a href="{{ route('properties.index') }}" class="btn btn-primary py-1.5 text-xs">
+                    View Properties
+                </a>
             </div>
             <div class="overflow-x-auto">
                 <table class="data-table">
