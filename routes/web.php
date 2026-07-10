@@ -9,6 +9,7 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TenantController;
+use App\Http\Controllers\MonitoringController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('businesses.select'));
@@ -88,4 +89,13 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/properties/{property}/buildings/{building}/rooms/{room}/toggle-maintenance', [PropertyController::class, 'toggleMaintenance'])->middleware('role:admin,manager')->name('properties.rooms.toggle-maintenance');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
+
+    Route::prefix('monitoring')->name('monitoring.')->group(function (): void {
+        Route::get('/rental', [MonitoringController::class, 'rental'])->name('rental');
+        Route::get('/agriculture', [MonitoringController::class, 'agriculture'])->name('agriculture');
+        Route::get('/tilapia', [MonitoringController::class, 'tilapia'])->name('tilapia');
+        Route::get('/conel', [MonitoringController::class, 'conel'])->name('conel');
+        Route::get('/128', [MonitoringController::class, 'oneTwoEight'])->name('128');
+        Route::post('/transaction', [MonitoringController::class, 'storeTransaction'])->middleware('role:admin,manager')->name('transaction.store');
+    });
 });

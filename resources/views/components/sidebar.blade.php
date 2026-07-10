@@ -9,6 +9,14 @@
         ['route' => 'reports.index', 'label' => 'Reports', 'icon' => 'chart'],
         ['route' => 'activity.index', 'label' => 'Activity Log', 'icon' => 'activity'],
     ];
+
+    $monitoringItems = [
+        ['route' => 'monitoring.rental', 'label' => 'Rental Monitoring', 'icon' => 'payment'],
+        ['route' => 'monitoring.agriculture', 'label' => 'Agriculture Monitoring', 'icon' => 'expense'],
+        ['route' => 'monitoring.tilapia', 'label' => 'Tilapia Monitoring', 'icon' => 'expense'],
+        ['route' => 'monitoring.conel', 'label' => 'Conel Monitoring', 'icon' => 'payment'],
+        ['route' => 'monitoring.128', 'label' => '128 Monitoring', 'icon' => 'payment'],
+    ];
 @endphp
 
 <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col bg-sidebar transition-transform duration-300 lg:translate-x-0">
@@ -32,6 +40,15 @@
     <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4 scrollbar-thin">
         <p class="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Main Menu</p>
         @foreach($navItems as $item)
+            @php $active = request()->routeIs($item['route'] . '*') || request()->routeIs($item['route']); @endphp
+            <a href="{{ route($item['route']) }}" class="sidebar-link {{ $active ? 'sidebar-link-active' : '' }}">
+                @include('components.icons.' . $item['icon'], ['class' => 'h-5 w-5 shrink-0'])
+                {{ $item['label'] }}
+            </a>
+        @endforeach
+
+        <p class="mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Monitoring</p>
+        @foreach($monitoringItems as $item)
             @php $active = request()->routeIs($item['route'] . '*') || request()->routeIs($item['route']); @endphp
             <a href="{{ route($item['route']) }}" class="sidebar-link {{ $active ? 'sidebar-link-active' : '' }}">
                 @include('components.icons.' . $item['icon'], ['class' => 'h-5 w-5 shrink-0'])
