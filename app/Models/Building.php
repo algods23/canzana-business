@@ -14,6 +14,7 @@ class Building extends Model
     protected $fillable = [
         'property_id',
         'type',
+        'rental_mode',
         'name',
         'floors',
         'status',

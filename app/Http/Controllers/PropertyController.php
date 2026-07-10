@@ -188,9 +188,29 @@ class PropertyController extends Controller
             'type' => ['required', 'in:building,house'],
             'floors' => ['required', 'integer', 'min:1', 'max:200'],
             'status' => ['required', 'in:active,maintenance'],
+            'rental_mode' => ['required', 'in:rooms,whole'],
+            'rent' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
         ]);
 
-        $building->update($validated);
+        $building->update([
+            'name' => $validated['name'],
+            'type' => $validated['type'],
+            'floors' => $validated['floors'],
+            'status' => $validated['status'],
+            'rental_mode' => $validated['rental_mode'],
+        ]);
+
+        // If changed to whole and no rooms exist, we could create one
+        if ($validated['rental_mode'] === 'whole' && $building->rooms()->count() === 0 && !empty($validated['rent'])) {
+            $building->rooms()->create([
+                'unit' => 'Whole Property',
+                'floor' => 1,
+                'type' => $building->type === 'house' ? 'house' : 'building',
+                'size_sqm' => 100, // placeholder
+                'rent' => $validated['rent'],
+                'status' => 'vacant',
+            ]);
+        }
 
         return redirect()->route('properties.building', [$property, $building])->with('success', 'Building updated.');
     }
