@@ -50,6 +50,7 @@
                         <th>Date</th>
                         <th>Category</th>
                         <th>Description</th>
+                        <th>Recipient</th>
                         <th>Building / Room</th>
                         <th>Amount</th>
                         <th>Notes</th>
@@ -78,6 +79,7 @@
                                 </span>
                             </td>
                             <td class="font-medium text-slate-900">{{ $expense->description }}</td>
+                            <td class="text-sm text-slate-600">{{ $expense->recipient_name ?? '—' }}</td>
                             <td>
                                 <p>{{ $expense->buildingModel?->propertyModel?->name }} · {{ $expense->building_name }}</p>
                                 @if($expense->room_id)
@@ -101,7 +103,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="py-12 text-center">
+                            <td colspan="8" class="py-12 text-center">
                                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
                                     @include('components.icons.expense', ['class' => 'h-7 w-7 text-slate-400'])
                                 </div>

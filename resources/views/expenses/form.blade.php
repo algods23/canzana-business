@@ -55,6 +55,12 @@
         @error('description')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
     </div>
     <div>
+        <label class="mb-1.5 block text-sm font-medium text-slate-700" for="recipient_name">Recipient Name (optional)</label>
+        <input id="recipient_name" name="recipient_name" type="text" value="{{ old('recipient_name', $expense->recipient_name ?? '') }}" class="input-field w-full" placeholder="e.g., Juan Dela Cruz">
+        <p class="mt-1 text-xs text-slate-500">Name of person who received the payment</p>
+        @error('recipient_name')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+    </div>
+    <div>
         <label class="mb-1.5 block text-sm font-medium text-slate-700" for="amount">Amount (₱)</label>
         <input id="amount" name="amount" type="number" step="0.01" min="0.01" max="9999999.99" value="{{ old('amount', $expense->amount ?? '') }}" class="input-field w-full" required placeholder="e.g., 5000.00">
         @error('amount')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror

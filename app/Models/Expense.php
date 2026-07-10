@@ -15,6 +15,7 @@ class Expense extends Model
         'room_id',
         'category',
         'description',
+        'recipient_name',
         'amount',
         'expense_date',
         'notes',
