@@ -23,11 +23,10 @@
     </div>
 
     {{-- Stats Cards --}}
-    <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
         <x-stat-card label="Total Sales" :value="'₱' . number_format($stats['total_sales'])" icon="expense" color="emerald" />
         <x-stat-card label="Total Expenses" :value="'₱' . number_format($stats['total_expenses'])" icon="expense" color="amber" />
         <x-stat-card label="Net Income" :value="'₱' . number_format($stats['net_income'])" icon="expense" :color="$stats['net_income'] >= 0 ? 'emerald' : 'rose'" />
-        <x-stat-card label="Balance" :value="'₱' . number_format($stats['balance'])" icon="payment" color="sky" />
     </div>
 
     {{-- Recent Transactions --}}

@@ -23,11 +23,10 @@
     </div>
 
     {{-- Stats Cards --}}
-    <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
         <x-stat-card label="Total Sales" :value="'₱' . number_format($stats['total_sales'])" icon="expense" color="emerald" />
         <x-stat-card label="Total Expenses" :value="'₱' . number_format($stats['total_expenses'])" icon="expense" color="amber" />
         <x-stat-card label="Net Income" :value="'₱' . number_format($stats['net_income'])" icon="expense" :color="$stats['net_income'] >= 0 ? 'emerald' : 'rose'" />
-        <x-stat-card label="Balance" :value="'₱' . number_format($stats['balance'])" icon="payment" color="sky" />
     </div>
 
     {{-- Recent Transactions --}}
@@ -53,6 +52,7 @@
                 <thead>
                     <tr>
                         <th>Date</th>
+                        <th>Name</th>
                         <th>Type</th>
                         <th>Description</th>
                         <th>Amount</th>
@@ -63,6 +63,7 @@
                     @forelse($recentTransactions as $transaction)
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($transaction->transaction_date)->format('M d, Y') }}</td>
+                            <td class="font-medium text-slate-900">{{ $transaction->name ?? '—' }}</td>
                             <td>
                                 <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $transaction->module_type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700' }}">
                                     {{ ucfirst($transaction->module_type) }}
@@ -76,7 +77,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-12 text-center text-slate-500">No transactions yet</td>
+                            <td colspan="6" class="py-12 text-center text-slate-500">No transactions yet</td>
                         </tr>
                     @endforelse
                 </tbody>

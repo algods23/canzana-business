@@ -310,7 +310,7 @@ class MonitoringController extends Controller
             'transaction' => new Transaction([
                 'account_type' => 'agriculture',
                 'module_type' => 'income',
-                'transaction_date' => now()->toDateString(),
+                'transaction_date' => now()->format('Y-m-d'),
             ]),
         ]);
     }
@@ -346,7 +346,7 @@ class MonitoringController extends Controller
             'transaction' => new Transaction([
                 'account_type' => 'agriculture',
                 'module_type' => 'expense',
-                'transaction_date' => now()->toDateString(),
+                'transaction_date' => now()->format('Y-m-d'),
             ]),
         ]);
     }
@@ -383,7 +383,7 @@ class MonitoringController extends Controller
             'transaction' => new Transaction([
                 'account_type' => 'tilapia',
                 'module_type' => 'income',
-                'transaction_date' => now()->toDateString(),
+                'transaction_date' => now()->format('Y-m-d'),
             ]),
         ]);
     }
@@ -419,7 +419,7 @@ class MonitoringController extends Controller
             'transaction' => new Transaction([
                 'account_type' => 'tilapia',
                 'module_type' => 'expense',
-                'transaction_date' => now()->toDateString(),
+                'transaction_date' => now()->format('Y-m-d'),
             ]),
         ]);
     }

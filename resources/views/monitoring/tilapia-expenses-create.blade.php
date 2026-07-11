@@ -45,7 +45,7 @@
 
             <div class="mb-4">
                 <label class="mb-1.5 block text-sm font-medium text-slate-700" for="transaction_date">Date</label>
-                <input id="transaction_date" name="transaction_date" type="date" value="{{ old('transaction_date', $transaction->transaction_date ?? now()->toDateString()) }}" class="input-field w-full" required>
+                <input id="transaction_date" name="transaction_date" type="date" value="{{ old('transaction_date', $transaction->transaction_date ?? now()->format('Y-m-d')) }}" class="input-field w-full" required>
             </div>
 
             <div class="mb-4">
