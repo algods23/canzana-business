@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use App\Models\Transaction;
 use App\Models\Expense;
 use App\Models\Payment;
+use App\Support\Analytics;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -135,6 +136,7 @@ class MonitoringController extends Controller
             'recentTransactions' => $recentTransactions,
             'expenses' => $expenses,
             'filters' => $request->only(['date_from', 'date_to']),
+            'revenueChart' => Analytics::revenueChart(),
         ]);
     }
 

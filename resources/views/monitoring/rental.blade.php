@@ -43,6 +43,27 @@
         <x-stat-card label="Net Income" :value="'₱' . number_format($stats['net_income'])" icon="expense" :color="$stats['net_income'] >= 0 ? 'emerald' : 'rose'" />
     </div>
 
+    {{-- Revenue Overview --}}
+    <div class="mb-6">
+        <div class="panel">
+            <div class="flex items-center justify-between border-b border-border px-5 py-4">
+                <div>
+                    <h3 class="font-semibold text-slate-900">Revenue Overview</h3>
+                    <p class="text-xs text-slate-500">Collected vs expected — last 6 months</p>
+                </div>
+                <select class="input-field w-auto py-1.5 text-xs">
+                    <option>Last 6 months</option>
+                    <option>Last 12 months</option>
+                </select>
+            </div>
+            <div class="p-5">
+                <div class="rounded-2xl border border-border bg-slate-50 p-4">
+                    <canvas id="revenueChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="grid gap-6 lg:grid-cols-1">
         {{-- Tenants List with Details --}}
         <div class="panel">
@@ -229,15 +250,64 @@
     </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script>
+        const revenueData = @json($revenueChart);
+        const revenueCtx = document.getElementById('revenueChart');
+
+        if (revenueCtx) {
+            new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: revenueData.map((entry) => entry.month),
+                    datasets: [
+                        {
+                            label: 'Collected',
+                            data: revenueData.map((entry) => entry.collected),
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                            fill: true,
+                            tension: 0.35,
+                        },
+                        {
+                            label: 'Expected',
+                            data: revenueData.map((entry) => entry.expected),
+                            borderColor: '#94a3b8',
+                            backgroundColor: 'rgba(148, 163, 184, 0.10)',
+                            fill: true,
+                            tension: 0.35,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => '₱' + Number(value).toLocaleString(),
+                            },
+                        },
+                    },
+                },
+            });
+        }
+    </script>
+@endpush
+
     <div id="transactionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
             <h3 class="mb-4 text-lg font-semibold text-slate-900">Add Transaction</h3>
-            
+
             <form method="POST" action="{{ route('monitoring.transaction.store') }}">
                 @csrf
                 <input type="hidden" name="account_type" value="rental">
-                
+
                 <div class="mb-4">
                     <label class="mb-1.5 block text-sm font-medium text-slate-700" for="module_type">Type</label>
                     <select id="module_type" name="module_type" class="input-field w-full" required>
@@ -247,27 +317,27 @@
                         <option value="balance_adjustment">Balance Adjustment</option>
                     </select>
                 </div>
-                
+
                 <div class="mb-4">
                     <label class="mb-1.5 block text-sm font-medium text-slate-700" for="amount">Amount (₱)</label>
                     <input id="amount" name="amount" type="number" step="0.01" min="0.01" class="input-field w-full" required>
                 </div>
-                
+
                 <div class="mb-4">
                     <label class="mb-1.5 block text-sm font-medium text-slate-700" for="description">Description</label>
                     <input id="description" name="description" type="text" class="input-field w-full" required>
                 </div>
-                
+
                 <div class="mb-4">
                     <label class="mb-1.5 block text-sm font-medium text-slate-700" for="transaction_date">Date</label>
                     <input id="transaction_date" name="transaction_date" type="date" value="{{ now()->format('Y-m-d') }}" class="input-field w-full" required>
                 </div>
-                
+
                 <div class="mb-4">
                     <label class="mb-1.5 block text-sm font-medium text-slate-700" for="notes">Notes (optional)</label>
                     <input id="notes" name="notes" type="text" class="input-field w-full">
                 </div>
-                
+
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="closeTransactionModal()" class="btn btn-secondary">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save</button>
@@ -293,4 +363,3 @@
             }
         });
     </script>
-@endsection

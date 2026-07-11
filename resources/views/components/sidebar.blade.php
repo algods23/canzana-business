@@ -1,6 +1,5 @@
 @php
     $navItems = [
-        ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'dashboard'],
         ['route' => 'monitoring.rental', 'label' => 'Rental Monitoring', 'icon' => 'payment'],
         ['route' => 'monitoring.agriculture', 'label' => 'Agriculture Monitoring', 'icon' => 'expense'],
         ['route' => 'monitoring.tilapia', 'label' => 'Tilapia Monitoring', 'icon' => 'expense'],
@@ -17,7 +16,7 @@
 
 <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col bg-sidebar transition-transform duration-300 lg:translate-x-0">
     <div class="flex h-16 items-center justify-between border-b border-slate-700/50 px-5">
-        <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
+        <a href="{{ route('monitoring.rental') }}" class="flex items-center gap-2.5">
             <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600">
                 <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />

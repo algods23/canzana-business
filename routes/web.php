@@ -12,7 +12,7 @@ use App\Http\Controllers\TenantController;
 use App\Http\Controllers\MonitoringController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route('dashboard'));
+Route::get('/', fn () => redirect()->route('monitoring.rental'));
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -27,8 +27,6 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/businesses', [BusinessController::class, 'store'])->middleware('role:admin,manager')->name('businesses.store');
     Route::get('/businesses/{business}/open', [BusinessController::class, 'open'])->name('businesses.open');
     Route::post('/businesses/{business}/daily-entry', [DashboardController::class, 'storeDailyEntry'])->middleware('role:admin,manager')->name('businesses.daily-entry.store');
-
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::prefix('properties')->name('properties.')->group(function (): void {
         Route::get('/', [PropertyController::class, 'index'])->name('index');
