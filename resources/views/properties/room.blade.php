@@ -329,7 +329,7 @@
                             @csrf
                             <input type="file" name="contract" accept=".pdf,.doc,.docx"
                                    class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:bg-brand-50 file:px-2 file:py-1 file:text-xs file:font-semibold file:text-brand-700 hover:file:bg-brand-100" required>
-                            <button type="submit" class="btn btn-secondary py-1.5 text-xs">{{ $tenant->contract_path ? 'Re-upload' : 'Upload' }}</button>
+                            <button type="submit" class="btn btn-secondary py-1.5 text-xs whitespace-nowrap">{{ $tenant->contract_path ? 'Re-upload' : 'Upload' }}</button>
                         </form>
                     @else
                         <p class="text-xs text-slate-400">No contract on file. Assign a tenant to create a lease.</p>

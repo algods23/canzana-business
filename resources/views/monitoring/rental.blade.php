@@ -132,12 +132,92 @@
         </div>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-2">
+    <div class="grid gap-6">
 
-        {{-- Recent Transactions --}}
+        {{-- Expenses --}}
+        <div class="panel">
+            <div class="flex items-center justify-between border-b border-border px-5 py-4">
+                <div>
+                    <h3 class="font-semibold text-slate-900">Expenses</h3>
+                    <p class="text-xs text-slate-500">Rental-related expenses</p>
+                </div>
+                <a href="{{ route('expenses.create') }}" class="btn btn-primary py-1.5 text-xs">
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                    Record Expense
+                </a>
+            </div>
+            <div class="max-h-96 overflow-y-auto overflow-x-auto" style="font-size: 10px;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Building / Room</th>
+                            <th>Recipient</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Notes</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($expenses as $expense)
+                            @php
+                                $categoryColors = [
+                                    'Maintenance' => 'bg-amber-50 text-amber-700',
+                                    'Utilities' => 'bg-sky-50 text-sky-700',
+                                    'Repairs' => 'bg-rose-50 text-rose-700',
+                                    'Supplies' => 'bg-emerald-50 text-emerald-700',
+                                    'Cleaning' => 'bg-teal-50 text-teal-700',
+                                    'Insurance' => 'bg-indigo-50 text-indigo-700',
+                                    'Tax' => 'bg-purple-50 text-purple-700',
+                                ];
+                                $catClass = $categoryColors[$expense->category] ?? 'bg-slate-50 text-slate-700';
+                            @endphp
+                            <tr>
+                                <td>{{ \Carbon\Carbon::parse($expense->expense_date)->format('M d, Y') }}</td>
+                                <td>
+                                    <p>{{ $expense->buildingModel?->propertyModel?->name }} &middot; {{ $expense->building_name }}</p>
+                                    @if($expense->room_id)
+                                        <p class="text-xs text-slate-500">Unit {{ $expense->room_unit }}</p>
+                                    @else
+                                        <p class="text-xs italic text-slate-400">Whole building</p>
+                                    @endif
+                                </td>
+                                <td class="text-sm text-slate-600">{{ $expense->recipient_name ?? 'N/A' }}</td>
+                                <td>
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $catClass }}">
+                                        {{ $expense->category }}
+                                    </span>
+                                </td>
+                                <td class="font-medium text-slate-900">{{ $expense->description }}</td>
+                                <td class="font-semibold text-rose-600">&#8369;{{ number_format($expense->amount, 2) }}</td>
+                                <td class="max-w-32 truncate text-xs text-slate-500">{{ $expense->notes ?? 'N/A' }}</td>
+                                <td>
+                                    <div class="flex gap-1">
+                                        <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-secondary py-1 text-xs">Edit</a>
+                                        <form action="{{ route('expenses.destroy', $expense) }}" method="POST" class="inline" onsubmit="return confirm('Delete this expense?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="py-12 text-center text-slate-500">No expenses recorded</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Recent Transactions (Logs) --}}
         <div class="panel">
             <div class="border-b border-border px-5 py-4">
-                <h3 class="font-semibold text-slate-900">Recent Transactions</h3>
+                <h3 class="font-semibold text-slate-900">Logs</h3>
                 <p class="text-xs text-slate-500">Latest rental sales received</p>
             </div>
             <div class="max-h-96 overflow-y-auto overflow-x-auto" style="font-size: 10px;">
@@ -161,86 +241,6 @@
                         @empty
                             <tr>
                                 <td colspan="4" class="py-12 text-center text-slate-500">No transactions yet</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        {{-- Expenses --}}
-        <div class="panel">
-            <div class="flex items-center justify-between border-b border-border px-5 py-4">
-                <div>
-                    <h3 class="font-semibold text-slate-900">Expenses</h3>
-                    <p class="text-xs text-slate-500">Rental-related expenses</p>
-                </div>
-                <a href="{{ route('expenses.create') }}" class="btn btn-primary py-1.5 text-xs">
-                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                    Record Expense
-                </a>
-            </div>
-            <div class="max-h-96 overflow-y-auto overflow-x-auto" style="font-size: 10px;">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Category</th>
-                            <th>Description</th>
-                            <th>Recipient</th>
-                            <th>Building / Room</th>
-                            <th>Amount</th>
-                            <th>Notes</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($expenses as $expense)
-                            @php
-                                $categoryColors = [
-                                    'Maintenance' => 'bg-amber-50 text-amber-700',
-                                    'Utilities' => 'bg-sky-50 text-sky-700',
-                                    'Repairs' => 'bg-rose-50 text-rose-700',
-                                    'Supplies' => 'bg-emerald-50 text-emerald-700',
-                                    'Cleaning' => 'bg-teal-50 text-teal-700',
-                                    'Insurance' => 'bg-indigo-50 text-indigo-700',
-                                    'Tax' => 'bg-purple-50 text-purple-700',
-                                ];
-                                $catClass = $categoryColors[$expense->category] ?? 'bg-slate-50 text-slate-700';
-                            @endphp
-                            <tr>
-                                <td>{{ \Carbon\Carbon::parse($expense->expense_date)->format('M d, Y') }}</td>
-                                <td>
-                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $catClass }}">
-                                        {{ $expense->category }}
-                                    </span>
-                                </td>
-                                <td class="font-medium text-slate-900">{{ $expense->description }}</td>
-                                <td class="text-sm text-slate-600">{{ $expense->recipient_name ?? 'N/A' }}</td>
-                                <td>
-                                    <p>{{ $expense->buildingModel?->propertyModel?->name }} &middot; {{ $expense->building_name }}</p>
-                                    @if($expense->room_id)
-                                        <p class="text-xs text-slate-500">Unit {{ $expense->room_unit }}</p>
-                                    @else
-                                        <p class="text-xs italic text-slate-400">Whole building</p>
-                                    @endif
-                                </td>
-                                <td class="font-semibold text-rose-600">&#8369;{{ number_format($expense->amount, 2) }}</td>
-                                <td class="max-w-32 truncate text-xs text-slate-500">{{ $expense->notes ?? 'N/A' }}</td>
-                                <td>
-                                    <div class="flex gap-1">
-                                        <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-secondary py-1 text-xs">Edit</a>
-                                        <form action="{{ route('expenses.destroy', $expense) }}" method="POST" class="inline" onsubmit="return confirm('Delete this expense?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700">Delete</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="py-12 text-center text-slate-500">No expenses recorded</td>
                             </tr>
                         @endforelse
                     </tbody>
