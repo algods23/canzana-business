@@ -18,18 +18,24 @@
             </div>
 
             <div class="mb-4">
+                <label class="mb-1.5 block text-sm font-medium text-slate-700" for="pcv_number">PCV#</label>
+                <input id="pcv_number" name="pcv_number" type="text" value="{{ old('pcv_number', $transaction->pcv_number ?? '') }}" class="input-field w-full" required>
+            </div>
+
+            <div class="mb-4">
                 <label class="mb-1.5 block text-sm font-medium text-slate-700" for="category">Category</label>
-                <select id="category" name="category" class="input-field w-full" required>
+                <select id="category" name="category" class="input-field w-full" required onchange="toggleOtherCategory()">
                     <option value="">Select Category</option>
-                    <option value="Feed">Feed</option>
-                    <option value="Fertilizer">Fertilizer</option>
-                    <option value="Labor">Labor</option>
-                    <option value="Equipment">Equipment</option>
-                    <option value="Transportation">Transportation</option>
-                    <option value="Utilities">Utilities</option>
-                    <option value="Maintenance">Maintenance</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category }}">{{ $category }}</option>
+                    @endforeach
                     <option value="Other">Other</option>
                 </select>
+            </div>
+
+            <div class="mb-4 hidden" id="otherCategoryDiv">
+                <label class="mb-1.5 block text-sm font-medium text-slate-700" for="other_category">Specify Category</label>
+                <input id="other_category" name="other_category" type="text" class="input-field w-full" placeholder="Enter category type">
             </div>
 
             <div class="mb-4">
@@ -38,8 +44,8 @@
             </div>
 
             <div class="mb-4">
-                <label class="mb-1.5 block text-sm font-medium text-slate-700" for="description">Description</label>
-                <input id="description" name="description" type="text" value="{{ old('description', $transaction->description ?? '') }}" class="input-field w-full" required>
+                <label class="mb-1.5 block text-sm font-medium text-slate-700" for="description">Description (optional)</label>
+                <input id="description" name="description" type="text" value="{{ old('description', $transaction->description ?? '') }}" class="input-field w-full">
             </div>
 
             <div class="mb-4">
@@ -58,4 +64,21 @@
             </div>
         </form>
     </div>
+
+    <script>
+        function toggleOtherCategory() {
+            const categorySelect = document.getElementById('category');
+            const otherCategoryDiv = document.getElementById('otherCategoryDiv');
+            const otherCategoryInput = document.getElementById('other_category');
+
+            if (categorySelect.value === 'Other') {
+                otherCategoryDiv.classList.remove('hidden');
+                otherCategoryInput.required = true;
+            } else {
+                otherCategoryDiv.classList.add('hidden');
+                otherCategoryInput.required = false;
+                otherCategoryInput.value = '';
+            }
+        }
+    </script>
 @endsection

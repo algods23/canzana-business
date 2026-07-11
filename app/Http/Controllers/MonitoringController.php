@@ -322,8 +322,9 @@ class MonitoringController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'pcv_number' => ['required', 'string', 'max:50'],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
-            'description' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:255'],
             'transaction_date' => ['required', 'date'],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
@@ -342,12 +343,31 @@ class MonitoringController extends Controller
      */
     public function createAgricultureExpenses(): View
     {
+        // Get existing categories from database
+        $existingCategories = Transaction::where('account_type', 'agriculture')
+            ->where('module_type', 'expense')
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->pluck('category')
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        // Default categories
+        $defaultCategories = ['Feed', 'Fertilizer', 'Labor', 'Equipment', 'Transportation', 'Utilities', 'Maintenance'];
+
+        // Merge and deduplicate
+        $allCategories = array_unique(array_merge($defaultCategories, $existingCategories));
+        sort($allCategories);
+
         return view('monitoring.agriculture-expenses-create', [
             'transaction' => new Transaction([
                 'account_type' => 'agriculture',
                 'module_type' => 'expense',
                 'transaction_date' => now()->format('Y-m-d'),
             ]),
+            'categories' => $allCategories,
         ]);
     }
 
@@ -358,12 +378,19 @@ class MonitoringController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'pcv_number' => ['required', 'string', 'max:50'],
             'category' => ['required', 'string', 'max:100'],
+            'other_category' => ['nullable', 'string', 'max:100'],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
-            'description' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:255'],
             'transaction_date' => ['required', 'date'],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
+
+        // Use custom category if "Other" is selected
+        if ($validated['category'] === 'Other' && !empty($validated['other_category'])) {
+            $validated['category'] = $validated['other_category'];
+        }
 
         Transaction::create([
             'account_type' => 'agriculture',
@@ -395,8 +422,9 @@ class MonitoringController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'pcv_number' => ['required', 'string', 'max:50'],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
-            'description' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:255'],
             'transaction_date' => ['required', 'date'],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
@@ -415,12 +443,31 @@ class MonitoringController extends Controller
      */
     public function createTilapiaExpenses(): View
     {
+        // Get existing categories from database
+        $existingCategories = Transaction::where('account_type', 'tilapia')
+            ->where('module_type', 'expense')
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->pluck('category')
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        // Default categories
+        $defaultCategories = ['Feed', 'Fingerlings', 'Labor', 'Equipment', 'Transportation', 'Utilities', 'Maintenance', 'Medicine'];
+
+        // Merge and deduplicate
+        $allCategories = array_unique(array_merge($defaultCategories, $existingCategories));
+        sort($allCategories);
+
         return view('monitoring.tilapia-expenses-create', [
             'transaction' => new Transaction([
                 'account_type' => 'tilapia',
                 'module_type' => 'expense',
                 'transaction_date' => now()->format('Y-m-d'),
             ]),
+            'categories' => $allCategories,
         ]);
     }
 
@@ -431,12 +478,19 @@ class MonitoringController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'pcv_number' => ['required', 'string', 'max:50'],
             'category' => ['required', 'string', 'max:100'],
+            'other_category' => ['nullable', 'string', 'max:100'],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
-            'description' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:255'],
             'transaction_date' => ['required', 'date'],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
+
+        // Use custom category if "Other" is selected
+        if ($validated['category'] === 'Other' && !empty($validated['other_category'])) {
+            $validated['category'] = $validated['other_category'];
+        }
 
         Transaction::create([
             'account_type' => 'tilapia',

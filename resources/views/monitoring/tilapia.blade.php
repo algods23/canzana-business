@@ -52,7 +52,10 @@
                 <thead>
                     <tr>
                         <th>Date</th>
+                        <th>PCV#</th>
+                        <th>Name</th>
                         <th>Type</th>
+                        <th>Category</th>
                         <th>Description</th>
                         <th>Amount</th>
                         <th>Notes</th>
@@ -62,12 +65,15 @@
                     @forelse($recentTransactions as $transaction)
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($transaction->transaction_date)->format('M d, Y') }}</td>
+                            <td class="font-medium text-slate-900">{{ $transaction->pcv_number ?? '—' }}</td>
+                            <td class="font-medium text-slate-900">{{ $transaction->name ?? '—' }}</td>
                             <td>
                                 <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $transaction->module_type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700' }}">
                                     {{ ucfirst($transaction->module_type) }}
                                 </span>
                             </td>
-                            <td class="font-medium text-slate-900">{{ $transaction->description }}</td>
+                            <td class="text-sm text-slate-600">{{ $transaction->category ?? '—' }}</td>
+                            <td class="font-medium text-slate-900">{{ $transaction->description ?? '—' }}</td>
                             <td class="font-semibold {{ $transaction->module_type === 'income' ? 'text-emerald-600' : 'text-rose-600' }}">
                                 {{ $transaction->module_type === 'income' ? '+' : '-' }}₱{{ number_format($transaction->amount, 2) }}
                             </td>
@@ -75,7 +81,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-12 text-center text-slate-500">No transactions yet</td>
+                            <td colspan="8" class="py-12 text-center text-slate-500">No transactions yet</td>
                         </tr>
                     @endforelse
                 </tbody>

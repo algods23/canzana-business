@@ -14,6 +14,7 @@ class Transaction extends Model
         'module_type',
         'name',
         'category',
+        'pcv_number',
         'amount',
         'description',
         'transaction_date',
