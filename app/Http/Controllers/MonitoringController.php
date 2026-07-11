@@ -300,4 +300,150 @@ class MonitoringController extends Controller
 
         return redirect()->back()->with('success', 'Transaction recorded.');
     }
+
+    /**
+     * Show agriculture sales creation form
+     */
+    public function createAgricultureSales(): View
+    {
+        return view('monitoring.agriculture-sales-create', [
+            'transaction' => new Transaction([
+                'account_type' => 'agriculture',
+                'module_type' => 'income',
+                'transaction_date' => now()->toDateString(),
+            ]),
+        ]);
+    }
+
+    /**
+     * Store agriculture sales
+     */
+    public function storeAgricultureSales(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        Transaction::create([
+            'account_type' => 'agriculture',
+            'module_type' => 'income',
+            ...$validated,
+        ]);
+
+        return redirect()->route('monitoring.agriculture')->with('success', 'Sales recorded.');
+    }
+
+    /**
+     * Show agriculture expenses creation form
+     */
+    public function createAgricultureExpenses(): View
+    {
+        return view('monitoring.agriculture-expenses-create', [
+            'transaction' => new Transaction([
+                'account_type' => 'agriculture',
+                'module_type' => 'expense',
+                'transaction_date' => now()->toDateString(),
+            ]),
+        ]);
+    }
+
+    /**
+     * Store agriculture expenses
+     */
+    public function storeAgricultureExpenses(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'string', 'max:100'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        Transaction::create([
+            'account_type' => 'agriculture',
+            'module_type' => 'expense',
+            ...$validated,
+        ]);
+
+        return redirect()->route('monitoring.agriculture')->with('success', 'Expense recorded.');
+    }
+
+    /**
+     * Show tilapia sales creation form
+     */
+    public function createTilapiaSales(): View
+    {
+        return view('monitoring.tilapia-sales-create', [
+            'transaction' => new Transaction([
+                'account_type' => 'tilapia',
+                'module_type' => 'income',
+                'transaction_date' => now()->toDateString(),
+            ]),
+        ]);
+    }
+
+    /**
+     * Store tilapia sales
+     */
+    public function storeTilapiaSales(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        Transaction::create([
+            'account_type' => 'tilapia',
+            'module_type' => 'income',
+            ...$validated,
+        ]);
+
+        return redirect()->route('monitoring.tilapia')->with('success', 'Sales recorded.');
+    }
+
+    /**
+     * Show tilapia expenses creation form
+     */
+    public function createTilapiaExpenses(): View
+    {
+        return view('monitoring.tilapia-expenses-create', [
+            'transaction' => new Transaction([
+                'account_type' => 'tilapia',
+                'module_type' => 'expense',
+                'transaction_date' => now()->toDateString(),
+            ]),
+        ]);
+    }
+
+    /**
+     * Store tilapia expenses
+     */
+    public function storeTilapiaExpenses(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'string', 'max:100'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        Transaction::create([
+            'account_type' => 'tilapia',
+            'module_type' => 'expense',
+            ...$validated,
+        ]);
+
+        return redirect()->route('monitoring.tilapia')->with('success', 'Expense recorded.');
+    }
 }

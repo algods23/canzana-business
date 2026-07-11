@@ -91,7 +91,15 @@ Route::middleware('auth')->group(function (): void {
     Route::prefix('monitoring')->name('monitoring.')->group(function (): void {
         Route::get('/rental', [MonitoringController::class, 'rental'])->name('rental');
         Route::get('/agriculture', [MonitoringController::class, 'agriculture'])->name('agriculture');
+        Route::get('/agriculture/sales/create', [MonitoringController::class, 'createAgricultureSales'])->name('agriculture.sales.create');
+        Route::get('/agriculture/expenses/create', [MonitoringController::class, 'createAgricultureExpenses'])->name('agriculture.expenses.create');
+        Route::post('/agriculture/sales', [MonitoringController::class, 'storeAgricultureSales'])->name('agriculture.sales.store');
+        Route::post('/agriculture/expenses', [MonitoringController::class, 'storeAgricultureExpenses'])->name('agriculture.expenses.store');
         Route::get('/tilapia', [MonitoringController::class, 'tilapia'])->name('tilapia');
+        Route::get('/tilapia/sales/create', [MonitoringController::class, 'createTilapiaSales'])->name('tilapia.sales.create');
+        Route::get('/tilapia/expenses/create', [MonitoringController::class, 'createTilapiaExpenses'])->name('tilapia.expenses.create');
+        Route::post('/tilapia/sales', [MonitoringController::class, 'storeTilapiaSales'])->name('tilapia.sales.store');
+        Route::post('/tilapia/expenses', [MonitoringController::class, 'storeTilapiaExpenses'])->name('tilapia.expenses.store');
         Route::get('/conel', [MonitoringController::class, 'conel'])->name('conel');
         Route::get('/128', [MonitoringController::class, 'oneTwoEight'])->name('128');
         Route::post('/transaction', [MonitoringController::class, 'storeTransaction'])->middleware('role:admin,manager')->name('transaction.store');
