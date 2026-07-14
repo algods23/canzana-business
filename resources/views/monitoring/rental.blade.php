@@ -151,6 +151,7 @@
                     <thead>
                         <tr>
                             <th>Date</th>
+                            <th>PCV#</th>
                             <th>Building / Room</th>
                             <th>Recipient</th>
                             <th>Category</th>
@@ -176,6 +177,7 @@
                             @endphp
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($expense->expense_date)->format('M d, Y') }}</td>
+                                <td class="font-medium text-slate-900">{{ $expense->pcv_number ?? '—' }}</td>
                                 <td>
                                     <p>{{ $expense->buildingModel?->propertyModel?->name }} &middot; {{ $expense->building_name }}</p>
                                     @if($expense->room_id)
@@ -206,7 +208,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="py-12 text-center text-slate-500">No expenses recorded</td>
+                                <td colspan="9" class="py-12 text-center text-slate-500">No expenses recorded</td>
                             </tr>
                         @endforelse
                     </tbody>

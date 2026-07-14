@@ -16,6 +16,7 @@ class Expense extends Model
         'category',
         'description',
         'recipient_name',
+        'pcv_number',
         'amount',
         'expense_date',
         'notes',

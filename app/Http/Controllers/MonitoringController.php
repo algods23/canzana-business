@@ -166,14 +166,24 @@ class MonitoringController extends Controller
         $netIncome = $totalSales - $totalExpenses;
         $balance = $totalSales - $totalExpenses;
 
-        $query = Transaction::byAccount('agriculture');
+        // Separate sales and expenses transactions
+        $query = Transaction::byAccount('agriculture')->where('module_type', 'income');
         if ($request->filled('date_from')) {
             $query->where('transaction_date', '>=', $request->date_from);
         }
         if ($request->filled('date_to')) {
             $query->where('transaction_date', '<=', $request->date_to);
         }
-        $recentTransactions = $query->latest('transaction_date')->take(10)->get();
+        $salesTransactions = $query->latest('transaction_date')->take(10)->get();
+
+        $query = Transaction::byAccount('agriculture')->where('module_type', 'expense');
+        if ($request->filled('date_from')) {
+            $query->where('transaction_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->where('transaction_date', '<=', $request->date_to);
+        }
+        $expenseTransactions = $query->latest('transaction_date')->take(10)->get();
 
         return view('monitoring.agriculture', [
             'stats' => [
@@ -182,7 +192,8 @@ class MonitoringController extends Controller
                 'net_income' => $netIncome,
                 'balance' => $balance,
             ],
-            'recentTransactions' => $recentTransactions,
+            'salesTransactions' => $salesTransactions,
+            'expenseTransactions' => $expenseTransactions,
             'filters' => $request->only(['date_from', 'date_to']),
         ]);
     }
@@ -213,14 +224,24 @@ class MonitoringController extends Controller
         $netIncome = $totalSales - $totalExpenses;
         $balance = $totalSales - $totalExpenses;
 
-        $query = Transaction::byAccount('tilapia');
+        // Separate sales and expenses transactions
+        $query = Transaction::byAccount('tilapia')->where('module_type', 'income');
         if ($request->filled('date_from')) {
             $query->where('transaction_date', '>=', $request->date_from);
         }
         if ($request->filled('date_to')) {
             $query->where('transaction_date', '<=', $request->date_to);
         }
-        $recentTransactions = $query->latest('transaction_date')->take(10)->get();
+        $salesTransactions = $query->latest('transaction_date')->take(10)->get();
+
+        $query = Transaction::byAccount('tilapia')->where('module_type', 'expense');
+        if ($request->filled('date_from')) {
+            $query->where('transaction_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->where('transaction_date', '<=', $request->date_to);
+        }
+        $expenseTransactions = $query->latest('transaction_date')->take(10)->get();
 
         return view('monitoring.tilapia', [
             'stats' => [
@@ -229,7 +250,8 @@ class MonitoringController extends Controller
                 'net_income' => $netIncome,
                 'balance' => $balance,
             ],
-            'recentTransactions' => $recentTransactions,
+            'salesTransactions' => $salesTransactions,
+            'expenseTransactions' => $expenseTransactions,
             'filters' => $request->only(['date_from', 'date_to']),
         ]);
     }

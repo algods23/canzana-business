@@ -61,6 +61,11 @@
         @error('recipient_name')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
     </div>
     <div>
+        <label class="mb-1.5 block text-sm font-medium text-slate-700" for="pcv_number">PCV#</label>
+        <input id="pcv_number" name="pcv_number" type="text" value="{{ old('pcv_number', $expense->pcv_number ?? '') }}" class="input-field w-full" required placeholder="e.g., PCV-001">
+        @error('pcv_number')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+    </div>
+    <div>
         <label class="mb-1.5 block text-sm font-medium text-slate-700" for="amount">Amount (₱)</label>
         <input id="amount" name="amount" type="number" step="0.01" min="0.01" max="9999999.99" value="{{ old('amount', $expense->amount ?? '') }}" class="input-field w-full" required placeholder="e.g., 5000.00">
         @error('amount')<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
