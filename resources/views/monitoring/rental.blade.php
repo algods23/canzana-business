@@ -163,17 +163,10 @@
                                     <div class="flex gap-1">
                                         @if($transaction->module_type === 'payment')
                                             <a href="{{ route('payments.edit', $transaction->payment_id) }}" class="btn btn-secondary py-1 text-xs">Edit</a>
-                                            <form action="{{ route('payments.destroy', $transaction->payment_id) }}" method="POST" class="inline" onsubmit="return confirmDelete(this)">
-                                                @csrf
-                                                @method('DELETE')
-                                                <input type="password" name="password" placeholder="Password" class="hidden delete-password" required>
-                                                <button type="submit" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700">Delete</button>
-                                            </form>
+                                            <button type="button" onclick="confirmDelete('{{ route('payments.destroy', $transaction->payment_id) }}')" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700">Delete</button>
                                         @else
                                             <a href="#" class="btn btn-secondary py-1 text-xs opacity-50" title="Cannot edit income transactions">Edit</a>
-                                            <form action="#" class="inline" title="Cannot delete income transactions">
-                                                <button type="button" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 opacity-50">Delete</button>
-                                            </form>
+                                            <button type="button" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 opacity-50" title="Cannot delete income transactions">Delete</button>
                                         @endif
                                     </div>
                                 </td>
@@ -256,12 +249,7 @@
                                 <td>
                                     <div class="flex gap-1">
                                         <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-secondary py-1 text-xs">Edit</a>
-                                        <form action="{{ route('expenses.destroy', $expense) }}" method="POST" class="inline" onsubmit="return confirmDelete(this)">
-                                            @csrf
-                                            @method('DELETE')
-                                            <input type="password" name="password" placeholder="Password" class="hidden delete-password" required>
-                                            <button type="submit" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700">Delete</button>
-                                        </form>
+                                        <button type="button" onclick="confirmDelete('{{ route('expenses.destroy', $expense) }}')" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700">Delete</button>
                                     </div>
                                 </td>
                             </tr>
@@ -290,11 +278,35 @@
         const revenueData = @json($revenueChart);
         const revenueCtx = document.getElementById('revenueChart');
 
-        function confirmDelete(form) {
+        function confirmDelete(url) {
             const password = prompt('Enter your password to confirm deletion:');
             if (password === null) return false;
-            form.querySelector('.delete-password').value = password;
-            return true;
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+            
+            const methodInput = document.createElement('input');
+            methodInput.type = 'hidden';
+            methodInput.name = '_method';
+            methodInput.value = 'DELETE';
+            form.appendChild(methodInput);
+            
+            const passwordInput = document.createElement('input');
+            passwordInput.type = 'hidden';
+            passwordInput.name = 'password';
+            passwordInput.value = password;
+            form.appendChild(passwordInput);
+            
+            document.body.appendChild(form);
+            form.submit();
         }
 
         if (revenueCtx) {
