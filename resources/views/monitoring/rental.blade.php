@@ -18,6 +18,7 @@
             <div class="flex gap-2">
                 <button type="submit" class="btn btn-secondary">Filter</button>
                 <a href="{{ route('monitoring.rental') }}" class="btn btn-secondary">Clear</a>
+                <button type="button" onclick="openReportModal()" class="btn btn-primary">Generate Report</button>
             </div>
         </form>
     </div>
@@ -399,6 +400,24 @@
         </div>
     </div>
 
+    <div id="reportModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h3 class="mb-4 text-lg font-semibold text-slate-900">Generate Report</h3>
+
+            <form method="GET" action="{{ route('monitoring.rental.report') }}">
+                <div class="mb-4">
+                    <label class="mb-1.5 block text-sm font-medium text-slate-700" for="report_month">Month</label>
+                    <input id="report_month" name="month" type="month" value="{{ now()->format('Y-m') }}" class="input-field w-full" required>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeReportModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Generate JPG</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function openTransactionModal() {
             document.getElementById('transactionModal').classList.remove('hidden');
@@ -410,9 +429,25 @@
             document.getElementById('transactionModal').classList.remove('flex');
         }
 
+        function openReportModal() {
+            document.getElementById('reportModal').classList.remove('hidden');
+            document.getElementById('reportModal').classList.add('flex');
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.add('hidden');
+            document.getElementById('reportModal').classList.remove('flex');
+        }
+
         document.getElementById('transactionModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeTransactionModal();
+            }
+        });
+
+        document.getElementById('reportModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeReportModal();
             }
         });
     </script>

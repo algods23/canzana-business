@@ -9,6 +9,7 @@ use App\Models\Payment;
 use App\Support\Analytics;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Http\Response;
 
 class MonitoringController extends Controller
 {
@@ -162,6 +163,168 @@ class MonitoringController extends Controller
             'filters' => $request->only(['date_from', 'date_to']),
             'revenueChart' => Analytics::revenueChart(),
         ]);
+    }
+
+    /**
+     * Generate Rental Report as JPG
+     */
+    public function rentalReport(Request $request): Response
+    {
+        $month = $request->get('month');
+        if (!$month) {
+            return response('Month parameter is required', 400);
+        }
+
+        $date = \Carbon\Carbon::parse($month . '-01');
+        $startDate = $date->copy()->startOfMonth();
+        $endDate = $date->copy()->endOfMonth();
+
+        // Get sales by payment method for the month
+        $salesByMethod = Payment::where('status', 'paid')
+            ->whereBetween('paid_date', [$startDate, $endDate])
+            ->get(['amount', 'method'])
+            ->groupBy(fn (Payment $payment) => $payment->method ?: 'unspecified')
+            ->map(fn ($payments) => (float) $payments->sum('amount'))
+            ->filter(fn (float $amount) => $amount > 0)
+            ->all();
+
+        // Get expenses by category for the month
+        $expensesByCategory = Expense::whereBetween('expense_date', [$startDate, $endDate])
+            ->get(['amount', 'category'])
+            ->groupBy('category')
+            ->map(fn ($expenses) => (float) $expenses->sum('amount'))
+            ->all();
+
+        $totalSales = array_sum($salesByMethod);
+        $totalExpenses = array_sum($expensesByCategory);
+        $netIncome = $totalSales - $totalExpenses;
+
+        // Generate JPG image
+        $image = imagecreatetruecolor(800, 600);
+        $white = imagecolorallocate($image, 255, 255, 255);
+        $black = imagecolorallocate($image, 0, 0, 0);
+        $gray = imagecolorallocate($image, 128, 128, 128);
+        $red = imagecolorallocate($image, 255, 0, 0);
+
+        imagefill($image, 0, 0, $white);
+
+        // Try to use system font for better character support
+        $fontFile = 'C:\Windows\Fonts\arial.ttf';
+        if (!file_exists($fontFile)) {
+            $fontFile = 'C:\Windows\Fonts\arialbd.ttf';
+        }
+
+        // Title
+        $monthName = $date->format('F Y');
+        if (file_exists($fontFile)) {
+            $titleBox = imagettfbbox(24, 0, $fontFile, 'Rental Monitoring');
+            $titleWidth = abs($titleBox[4] - $titleBox[0]);
+            $titleX = (800 - $titleWidth) / 2;
+            imagettftext($image, 24, 0, $titleX, 50, $black, $fontFile, 'Rental Monitoring');
+            
+            $subtitleBox = imagettfbbox(18, 0, $fontFile, 'For the month of ' . $monthName);
+            $subtitleWidth = abs($subtitleBox[4] - $subtitleBox[0]);
+            $subtitleX = (800 - $subtitleWidth) / 2;
+            imagettftext($image, 18, 0, $subtitleX, 80, $gray, $fontFile, 'For the month of ' . $monthName);
+        } else {
+            imagestring($image, 5, 300, 30, 'Rental Monitoring', $black);
+            imagestring($image, 4, 280, 60, 'For the month of ' . $monthName, $gray);
+        }
+
+        // Separator
+        imageline($image, 50, 100, 750, 100, $black);
+
+        // Sales section
+        $y = 140;
+        if (file_exists($fontFile)) {
+            imagettftext($image, 16, 0, 50, $y, $black, $fontFile, 'Total Sales');
+        } else {
+            imagestring($image, 4, 50, $y, 'Total Sales', $black);
+        }
+        $y += 30;
+
+        foreach ($salesByMethod as $method => $amount) {
+            $methodName = ucfirst($method);
+            $amountStr = number_format($amount, 2);
+            if (file_exists($fontFile)) {
+                imagettftext($image, 14, 0, 50, $y, $black, $fontFile, $methodName . ':');
+                imagettftext($image, 14, 0, 600, $y, $black, $fontFile, '₱' . $amountStr);
+            } else {
+                imagestring($image, 3, 50, $y, $methodName . ':', $black);
+                imagestring($image, 3, 600, $y, 'PHP ' . $amountStr, $black);
+            }
+            $y += 25;
+        }
+
+        $totalSalesStr = number_format($totalSales, 2);
+        if (file_exists($fontFile)) {
+            imagettftext($image, 14, 0, 50, $y, $black, $fontFile, 'Total:');
+            imagettftext($image, 14, 0, 600, $y, $black, $fontFile, '₱' . $totalSalesStr);
+        } else {
+            imagestring($image, 3, 50, $y, 'Total:', $black);
+            imagestring($image, 3, 600, $y, 'PHP ' . $totalSalesStr, $black);
+        }
+        $y += 40;
+
+        // Separator
+        imageline($image, 50, $y, 750, $y, $black);
+        $y += 30;
+
+        // Expenses section
+        if (file_exists($fontFile)) {
+            imagettftext($image, 16, 0, 50, $y, $black, $fontFile, 'Total Expenses');
+        } else {
+            imagestring($image, 4, 50, $y, 'Total Expenses', $black);
+        }
+        $y += 30;
+
+        foreach ($expensesByCategory as $category => $amount) {
+            $categoryName = ucfirst($category);
+            $amountStr = number_format($amount, 2);
+            if (file_exists($fontFile)) {
+                imagettftext($image, 14, 0, 50, $y, $black, $fontFile, $categoryName . ':');
+                imagettftext($image, 14, 0, 600, $y, $black, $fontFile, '₱' . $amountStr);
+            } else {
+                imagestring($image, 3, 50, $y, $categoryName . ':', $black);
+                imagestring($image, 3, 600, $y, 'PHP ' . $amountStr, $black);
+            }
+            $y += 25;
+        }
+
+        $totalExpensesStr = number_format($totalExpenses, 2);
+        if (file_exists($fontFile)) {
+            imagettftext($image, 14, 0, 50, $y, $black, $fontFile, 'Total:');
+            imagettftext($image, 14, 0, 600, $y, $black, $fontFile, '₱' . $totalExpensesStr);
+        } else {
+            imagestring($image, 3, 50, $y, 'Total:', $black);
+            imagestring($image, 3, 600, $y, 'PHP ' . $totalExpensesStr, $black);
+        }
+        $y += 40;
+
+        // Separator
+        imageline($image, 50, $y, 750, $y, $black);
+        $y += 30;
+
+        // Net Income
+        $netIncomeStr = number_format($netIncome, 2);
+        $netIncomeColor = $netIncome >= 0 ? $black : $red;
+        if (file_exists($fontFile)) {
+            imagettftext($image, 18, 0, 50, $y, $netIncomeColor, $fontFile, 'Net Income:');
+            imagettftext($image, 18, 0, 600, $y, $netIncomeColor, $fontFile, '₱' . $netIncomeStr);
+        } else {
+            imagestring($image, 5, 50, $y, 'Net Income:', $netIncomeColor);
+            imagestring($image, 5, 600, $y, 'PHP ' . $netIncomeStr, $netIncomeColor);
+        }
+
+        // Output image
+        ob_start();
+        imagejpeg($image);
+        $imageData = ob_get_clean();
+        imagedestroy($image);
+
+        return response($imageData)
+            ->header('Content-Type', 'image/jpeg')
+            ->header('Content-Disposition', 'attachment; filename="rental-report-' . $month . '.jpg"');
     }
 
     /**

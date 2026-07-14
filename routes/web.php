@@ -90,6 +90,7 @@ Route::middleware('auth')->group(function (): void {
 
     Route::prefix('monitoring')->name('monitoring.')->group(function (): void {
         Route::get('/rental', [MonitoringController::class, 'rental'])->name('rental');
+        Route::get('/rental/report', [MonitoringController::class, 'rentalReport'])->name('rental.report');
         Route::get('/agriculture', [MonitoringController::class, 'agriculture'])->name('agriculture');
         Route::get('/agriculture/sales/create', [MonitoringController::class, 'createAgricultureSales'])->name('agriculture.sales.create');
         Route::get('/agriculture/sales/{transaction}/edit', [MonitoringController::class, 'editAgricultureSales'])->name('agriculture.sales.edit');
