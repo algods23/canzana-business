@@ -101,7 +101,15 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/tilapia/sales', [MonitoringController::class, 'storeTilapiaSales'])->name('tilapia.sales.store');
         Route::post('/tilapia/expenses', [MonitoringController::class, 'storeTilapiaExpenses'])->name('tilapia.expenses.store');
         Route::get('/conel', [MonitoringController::class, 'conel'])->name('conel');
+        Route::get('/conel/deposit/create', [MonitoringController::class, 'createConelDeposit'])->name('conel.deposit.create');
+        Route::post('/conel/deposit', [MonitoringController::class, 'storeConelDeposit'])->name('conel.deposit.store');
+        Route::get('/conel/withdraw/create', [MonitoringController::class, 'createConelWithdraw'])->name('conel.withdraw.create');
+        Route::post('/conel/withdraw', [MonitoringController::class, 'storeConelWithdraw'])->name('conel.withdraw.store');
         Route::get('/128', [MonitoringController::class, 'oneTwoEight'])->name('128');
+        Route::get('/128/deposit/create', [MonitoringController::class, 'create128Deposit'])->name('128.deposit.create');
+        Route::post('/128/deposit', [MonitoringController::class, 'store128Deposit'])->name('128.deposit.store');
+        Route::get('/128/withdraw/create', [MonitoringController::class, 'create128Withdraw'])->name('128.withdraw.create');
+        Route::post('/128/withdraw', [MonitoringController::class, 'store128Withdraw'])->name('128.withdraw.store');
         Route::post('/transaction', [MonitoringController::class, 'storeTransaction'])->middleware('role:admin,manager')->name('transaction.store');
     });
 });

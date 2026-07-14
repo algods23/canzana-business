@@ -50,20 +50,7 @@
             </a>
         @endforeach
 
-        <p class="mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Quick Stats</p>
-        <div class="mx-1 rounded-lg bg-sidebar-hover/50 p-3">
-            <div class="flex items-center justify-between text-xs">
-                <span class="text-slate-400">Occupancy</span>
-                <span class="font-semibold text-brand-400">{{ number_format($sidebarStats['occupancy_rate'] ?? 0, 1) }}%</span>
-            </div>
-            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-700">
-                <div class="h-full rounded-full bg-brand-500" style="width: {{ $sidebarStats['occupancy_rate'] ?? 0 }}%"></div>
-            </div>
-            <div class="mt-3 flex items-center justify-between text-xs">
-                <span class="text-slate-400">Overdue</span>
-                <span class="font-semibold text-rose-400">{{ $sidebarStats['overdue_count'] ?? 0 }} accounts</span>
-            </div>
-        </div>
+
     </nav>
 
     <div class="border-t border-slate-700/50 p-4">

@@ -281,16 +281,18 @@ class MonitoringController extends Controller
     /**
      * Conel Monitoring Dashboard (Account Tracking)
      */
-    public function conel(): View
+    public function conel(Request $request): View
     {
         $totalIncome = Transaction::getTotalIncome('conel');
         $totalExpenses = Transaction::getTotalExpenses('conel');
         $balance = Transaction::getBalance('conel');
 
-        $recentTransactions = Transaction::byAccount('conel')
-            ->latest('transaction_date')
-            ->take(10)
-            ->get();
+        // Separate deposit and withdraw transactions
+        $query = Transaction::byAccount('conel')->where('module_type', 'income');
+        $depositTransactions = $query->latest('transaction_date')->paginate(10);
+
+        $query = Transaction::byAccount('conel')->where('module_type', 'expense');
+        $withdrawTransactions = $query->latest('transaction_date')->paginate(10);
 
         return view('monitoring.conel', [
             'stats' => [
@@ -298,23 +300,26 @@ class MonitoringController extends Controller
                 'total_expenses' => $totalExpenses,
                 'balance' => $balance,
             ],
-            'recentTransactions' => $recentTransactions,
+            'depositTransactions' => $depositTransactions,
+            'withdrawTransactions' => $withdrawTransactions,
         ]);
     }
 
     /**
      * 128 Monitoring Dashboard (Account Tracking)
      */
-    public function oneTwoEight(): View
+    public function oneTwoEight(Request $request): View
     {
         $totalIncome = Transaction::getTotalIncome('128');
         $totalExpenses = Transaction::getTotalExpenses('128');
         $balance = Transaction::getBalance('128');
 
-        $recentTransactions = Transaction::byAccount('128')
-            ->latest('transaction_date')
-            ->take(10)
-            ->get();
+        // Separate deposit and withdraw transactions
+        $query = Transaction::byAccount('128')->where('module_type', 'income');
+        $depositTransactions = $query->latest('transaction_date')->paginate(10);
+
+        $query = Transaction::byAccount('128')->where('module_type', 'expense');
+        $withdrawTransactions = $query->latest('transaction_date')->paginate(10);
 
         return view('monitoring.128', [
             'stats' => [
@@ -322,7 +327,8 @@ class MonitoringController extends Controller
                 'total_expenses' => $totalExpenses,
                 'balance' => $balance,
             ],
-            'recentTransactions' => $recentTransactions,
+            'depositTransactions' => $depositTransactions,
+            'withdrawTransactions' => $withdrawTransactions,
         ]);
     }
 
@@ -541,5 +547,149 @@ class MonitoringController extends Controller
         ]);
 
         return redirect()->route('monitoring.tilapia')->with('success', 'Expense recorded.');
+    }
+
+    /**
+     * Show conel deposit creation form
+     */
+    public function createConelDeposit(): View
+    {
+        return view('monitoring.conel-deposit-create', [
+            'transaction' => new Transaction([
+                'account_type' => 'conel',
+                'module_type' => 'income',
+                'transaction_date' => now()->format('Y-m-d'),
+            ]),
+        ]);
+    }
+
+    /**
+     * Store conel deposit
+     */
+    public function storeConelDeposit(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        Transaction::create([
+            'account_type' => 'conel',
+            'module_type' => 'income',
+            ...$validated,
+        ]);
+
+        return redirect()->route('monitoring.conel')->with('success', 'Deposit recorded.');
+    }
+
+    /**
+     * Show conel withdraw creation form
+     */
+    public function createConelWithdraw(): View
+    {
+        return view('monitoring.conel-withdraw-create', [
+            'transaction' => new Transaction([
+                'account_type' => 'conel',
+                'module_type' => 'expense',
+                'transaction_date' => now()->format('Y-m-d'),
+            ]),
+        ]);
+    }
+
+    /**
+     * Store conel withdraw
+     */
+    public function storeConelWithdraw(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        Transaction::create([
+            'account_type' => 'conel',
+            'module_type' => 'expense',
+            ...$validated,
+        ]);
+
+        return redirect()->route('monitoring.conel')->with('success', 'Withdrawal recorded.');
+    }
+
+    /**
+     * Show 128 deposit creation form
+     */
+    public function create128Deposit(): View
+    {
+        return view('monitoring.128-deposit-create', [
+            'transaction' => new Transaction([
+                'account_type' => '128',
+                'module_type' => 'income',
+                'transaction_date' => now()->format('Y-m-d'),
+            ]),
+        ]);
+    }
+
+    /**
+     * Store 128 deposit
+     */
+    public function store128Deposit(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        Transaction::create([
+            'account_type' => '128',
+            'module_type' => 'income',
+            ...$validated,
+        ]);
+
+        return redirect()->route('monitoring.128')->with('success', 'Deposit recorded.');
+    }
+
+    /**
+     * Show 128 withdraw creation form
+     */
+    public function create128Withdraw(): View
+    {
+        return view('monitoring.128-withdraw-create', [
+            'transaction' => new Transaction([
+                'account_type' => '128',
+                'module_type' => 'expense',
+                'transaction_date' => now()->format('Y-m-d'),
+            ]),
+        ]);
+    }
+
+    /**
+     * Store 128 withdraw
+     */
+    public function store128Withdraw(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        Transaction::create([
+            'account_type' => '128',
+            'module_type' => 'expense',
+            ...$validated,
+        ]);
+
+        return redirect()->route('monitoring.128')->with('success', 'Withdrawal recorded.');
     }
 }

@@ -11,45 +11,101 @@
         <x-stat-card label="Balance" :value="'₱' . number_format($stats['balance'])" icon="payment" :color="$stats['balance'] >= 0 ? 'sky' : 'rose'" />
     </div>
 
-    {{-- Recent Transactions --}}
-    <div class="panel">
-        <div class="border-b border-border px-5 py-4">
-            <h3 class="font-semibold text-slate-900">Recent Transactions</h3>
-            <p class="text-xs text-slate-500">Latest 128 account transactions</p>
+    {{-- Deposits --}}
+    <div class="panel mb-6">
+        <div class="flex items-center justify-between border-b border-border px-5 py-4">
+            <div>
+                <h3 class="font-semibold text-slate-900">Deposits</h3>
+                <p class="text-xs text-slate-500">128 account deposits</p>
+            </div>
+            <a href="{{ route('monitoring.128.deposit.create') }}" class="btn btn-primary py-1.5 text-xs">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                Add Deposit
+            </a>
         </div>
         <div class="overflow-x-auto">
             <table class="data-table">
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th>Type</th>
+                        <th>Name</th>
                         <th>Description</th>
                         <th>Amount</th>
                         <th>Notes</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($recentTransactions as $transaction)
+                    @forelse($depositTransactions as $transaction)
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($transaction->transaction_date)->format('M d, Y') }}</td>
-                            <td>
-                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $transaction->module_type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700' }}">
-                                    {{ ucfirst($transaction->module_type) }}
-                                </span>
-                            </td>
+                            <td class="font-medium text-slate-900">{{ $transaction->name ?? '—' }}</td>
                             <td class="font-medium text-slate-900">{{ $transaction->description }}</td>
-                            <td class="font-semibold {{ $transaction->module_type === 'income' ? 'text-emerald-600' : 'text-rose-600' }}">
-                                {{ $transaction->module_type === 'income' ? '+' : '-' }}₱{{ number_format($transaction->amount, 2) }}
+                            <td class="font-semibold text-emerald-600">
+                                +₱{{ number_format($transaction->amount, 2) }}
                             </td>
                             <td class="text-xs text-slate-500">{{ $transaction->notes ?? '—' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-12 text-center text-slate-500">No transactions yet</td>
+                            <td colspan="5" class="py-12 text-center text-slate-500">No deposits recorded</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
+            @if($depositTransactions->hasPages())
+                <div class="mt-4 flex justify-center">
+                    {{ $depositTransactions->links() }}
+                </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Withdrawals --}}
+    <div class="panel">
+        <div class="flex items-center justify-between border-b border-border px-5 py-4">
+            <div>
+                <h3 class="font-semibold text-slate-900">Withdrawals</h3>
+                <p class="text-xs text-slate-500">128 account withdrawals</p>
+            </div>
+            <a href="{{ route('monitoring.128.withdraw.create') }}" class="btn btn-secondary py-1.5 text-xs">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                Add Withdrawal
+            </a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($withdrawTransactions as $transaction)
+                        <tr>
+                            <td>{{ \Carbon\Carbon::parse($transaction->transaction_date)->format('M d, Y') }}</td>
+                            <td class="font-medium text-slate-900">{{ $transaction->name ?? '—' }}</td>
+                            <td class="font-medium text-slate-900">{{ $transaction->description }}</td>
+                            <td class="font-semibold text-rose-600">
+                                -₱{{ number_format($transaction->amount, 2) }}
+                            </td>
+                            <td class="text-xs text-slate-500">{{ $transaction->notes ?? '—' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="py-12 text-center text-slate-500">No withdrawals recorded</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            @if($withdrawTransactions->hasPages())
+                <div class="mt-4 flex justify-center">
+                    {{ $withdrawTransactions->links() }}
+                </div>
+            @endif
         </div>
     </div>
 @endsection
