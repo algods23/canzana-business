@@ -20,7 +20,7 @@
             </div>
             <a href="{{ route('monitoring.128.deposit.create') }}" class="btn btn-primary py-1.5 text-xs">
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                Add Deposit
+                Deposit
             </a>
         </div>
         <div class="overflow-x-auto">
@@ -69,7 +69,7 @@
             </div>
             <a href="{{ route('monitoring.128.withdraw.create') }}" class="btn btn-secondary py-1.5 text-xs">
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                Add Withdrawal
+                Withdrawal
             </a>
         </div>
         <div class="overflow-x-auto">
