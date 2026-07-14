@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\Property;
 use App\Models\Room;
 use App\Models\Tenant;
+use App\Models\Transaction;
 use Carbon\Carbon;
 
 class Analytics
@@ -181,5 +182,71 @@ class Analytics
         );
 
         return $items->sortByDesc('time')->take($limit)->values()->all();
+    }
+
+    /**
+     * Revenue chart for agriculture monitoring
+     */
+    public static function agricultureRevenueChart(int $months = 6): array
+    {
+        $start = now()->startOfMonth()->subMonths($months - 1);
+        $chart = [];
+
+        for ($i = 0; $i < $months; $i++) {
+            $month = $start->copy()->addMonths($i);
+
+            $sales = Transaction::where('account_type', 'agriculture')
+                ->where('module_type', 'income')
+                ->whereMonth('transaction_date', $month->month)
+                ->whereYear('transaction_date', $month->year)
+                ->sum('amount');
+
+            $expenses = Transaction::where('account_type', 'agriculture')
+                ->where('module_type', 'expense')
+                ->whereMonth('transaction_date', $month->month)
+                ->whereYear('transaction_date', $month->year)
+                ->sum('amount');
+
+            $chart[] = [
+                'month' => $month->format('M'),
+                'sales' => (float) $sales,
+                'expenses' => (float) $expenses,
+            ];
+        }
+
+        return $chart;
+    }
+
+    /**
+     * Revenue chart for tilapia monitoring
+     */
+    public static function tilapiaRevenueChart(int $months = 6): array
+    {
+        $start = now()->startOfMonth()->subMonths($months - 1);
+        $chart = [];
+
+        for ($i = 0; $i < $months; $i++) {
+            $month = $start->copy()->addMonths($i);
+
+            $sales = Transaction::where('account_type', 'tilapia')
+                ->where('module_type', 'income')
+                ->whereMonth('transaction_date', $month->month)
+                ->whereYear('transaction_date', $month->year)
+                ->sum('amount');
+
+            $expenses = Transaction::where('account_type', 'tilapia')
+                ->where('module_type', 'expense')
+                ->whereMonth('transaction_date', $month->month)
+                ->whereYear('transaction_date', $month->year)
+                ->sum('amount');
+
+            $chart[] = [
+                'month' => $month->format('M'),
+                'sales' => (float) $sales,
+                'expenses' => (float) $expenses,
+            ];
+        }
+
+        return $chart;
     }
 }

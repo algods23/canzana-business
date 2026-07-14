@@ -114,7 +114,7 @@ class ExpenseController extends Controller
             return redirect($redirect)->with('success', 'Expense recorded.');
         }
 
-        return redirect()->route('expenses.index')->with('success', 'Expense recorded.');
+        return redirect()->route('monitoring.rental')->with('success', 'Expense recorded.');
     }
 
     /**

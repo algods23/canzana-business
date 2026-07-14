@@ -18,11 +18,6 @@
             </div>
 
             <div class="mb-4">
-                <label class="mb-1.5 block text-sm font-medium text-slate-700" for="pcv_number">PCV#</label>
-                <input id="pcv_number" name="pcv_number" type="text" value="{{ old('pcv_number', $transaction->pcv_number ?? '') }}" class="input-field w-full" required>
-            </div>
-
-            <div class="mb-4">
                 <label class="mb-1.5 block text-sm font-medium text-slate-700" for="amount">Amount (₱)</label>
                 <input id="amount" name="amount" type="number" step="0.01" min="0.01" value="{{ old('amount', $transaction->amount ?? '') }}" class="input-field w-full" required>
             </div>

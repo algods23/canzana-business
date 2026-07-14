@@ -29,6 +29,23 @@
         <x-stat-card label="Net Income" :value="'₱' . number_format($stats['net_income'])" icon="expense" :color="$stats['net_income'] >= 0 ? 'emerald' : 'rose'" />
     </div>
 
+    {{-- Revenue Overview --}}
+    <div class="mb-6">
+        <div class="panel">
+            <div class="flex items-center justify-between border-b border-border px-5 py-4">
+                <div>
+                    <h3 class="font-semibold text-slate-900">Revenue Overview</h3>
+                    <p class="text-xs text-slate-500">Sales vs expenses — last 6 months</p>
+                </div>
+            </div>
+            <div class="p-5">
+                <div class="rounded-2xl border border-border bg-slate-50 p-4">
+                    <canvas id="revenueChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Sales --}}
     <div class="panel mb-6">
         <div class="flex items-center justify-between border-b border-border px-5 py-4">
@@ -46,7 +63,6 @@
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th>PCV#</th>
                         <th>Name</th>
                         <th>Description</th>
                         <th>Amount</th>
@@ -57,7 +73,6 @@
                     @forelse($salesTransactions as $transaction)
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($transaction->transaction_date)->format('M d, Y') }}</td>
-                            <td class="font-medium text-slate-900">{{ $transaction->pcv_number ?? '—' }}</td>
                             <td class="font-medium text-slate-900">{{ $transaction->name ?? '—' }}</td>
                             <td class="font-medium text-slate-900">{{ $transaction->description ?? '—' }}</td>
                             <td class="font-semibold text-emerald-600">
@@ -67,11 +82,16 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-12 text-center text-slate-500">No sales recorded</td>
+                            <td colspan="5" class="py-12 text-center text-slate-500">No sales recorded</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
+            @if($salesTransactions->hasPages())
+                <div class="mt-4 flex justify-center">
+                    {{ $salesTransactions->links() }}
+                </div>
+            @endif
         </div>
     </div>
 
@@ -120,6 +140,61 @@
                     @endforelse
                 </tbody>
             </table>
+            @if($expenseTransactions->hasPages())
+                <div class="mt-4 flex justify-center">
+                    {{ $expenseTransactions->links() }}
+                </div>
+            @endif
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script>
+        const revenueData = @json($revenueChart);
+        const revenueCtx = document.getElementById('revenueChart');
+
+        if (revenueCtx) {
+            new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: revenueData.map((entry) => entry.month),
+                    datasets: [
+                        {
+                            label: 'Sales',
+                            data: revenueData.map((entry) => entry.sales),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                            fill: true,
+                            tension: 0.35,
+                        },
+                        {
+                            label: 'Expenses',
+                            data: revenueData.map((entry) => entry.expenses),
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                            fill: true,
+                            tension: 0.35,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => '₱' + Number(value).toLocaleString(),
+                            },
+                        },
+                    },
+                },
+            });
+        }
+    </script>
+@endpush

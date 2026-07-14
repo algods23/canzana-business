@@ -134,6 +134,45 @@
 
     <div class="grid gap-6">
 
+<br>
+    {{-- Recent Transactions (Sales) --}}
+        <div class="panel">
+            <div class="border-b border-border px-5 py-4">
+                <h3 class="font-semibold text-slate-900">Sales</h3>
+                <p class="text-xs text-slate-500">Latest rental sales received</p>
+            </div>
+            <div class="overflow-y-auto overflow-x-auto" style="font-size: 10px;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Property / Unit</th>
+                            <th>Tenant</th>
+                            <th>Received</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($recentTransactions as $transaction)
+                            <tr>
+                                <td>{{ \Carbon\Carbon::parse($transaction->date)->format('M d, Y') }}</td>
+                                <td class="text-slate-700">{{ $transaction->property_unit ?: 'N/A' }}</td>
+                                <td class="font-medium text-slate-900">{{ $transaction->tenant ?: 'N/A' }}</td>
+                                <td class="font-semibold text-emerald-600">&#8369;{{ number_format($transaction->received, 2) }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="py-12 text-center text-slate-500">No transactions yet</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+                @if($recentTransactions->hasPages())
+                    <div class="mt-4 flex justify-center">
+                        {{ $recentTransactions->links() }}
+                    </div>
+                @endif
+            </div>
+        </div>
         {{-- Expenses --}}
         <div class="panel">
             <div class="flex items-center justify-between border-b border-border px-5 py-4">
@@ -146,7 +185,7 @@
                     Record Expense
                 </a>
             </div>
-            <div class="max-h-96 overflow-y-auto overflow-x-auto" style="font-size: 10px;">
+            <div class="overflow-y-auto overflow-x-auto" style="font-size: 10px;">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -213,42 +252,15 @@
                         @endforelse
                     </tbody>
                 </table>
+                @if($expenses->hasPages())
+                    <div class="mt-4 flex justify-center">
+                        {{ $expenses->links() }}
+                    </div>
+                @endif
             </div>
         </div>
 
-        {{-- Recent Transactions (Logs) --}}
-        <div class="panel">
-            <div class="border-b border-border px-5 py-4">
-                <h3 class="font-semibold text-slate-900">Logs</h3>
-                <p class="text-xs text-slate-500">Latest rental sales received</p>
-            </div>
-            <div class="max-h-96 overflow-y-auto overflow-x-auto" style="font-size: 10px;">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Property / Unit</th>
-                            <th>Tenant</th>
-                            <th>Received</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($recentTransactions as $transaction)
-                            <tr>
-                                <td>{{ \Carbon\Carbon::parse($transaction->date)->format('M d, Y') }}</td>
-                                <td class="text-slate-700">{{ $transaction->property_unit ?: 'N/A' }}</td>
-                                <td class="font-medium text-slate-900">{{ $transaction->tenant ?: 'N/A' }}</td>
-                                <td class="font-semibold text-emerald-600">&#8369;{{ number_format($transaction->received, 2) }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="py-12 text-center text-slate-500">No transactions yet</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        
     </div>
 @endsection
 

@@ -13,6 +13,25 @@ use Illuminate\View\View;
 class MonitoringController extends Controller
 {
     /**
+     * Paginate a collection
+     */
+    private function paginateCollection($collection, $perPage = 10)
+    {
+        $page = request()->get('page', 1);
+        $offset = ($page - 1) * $perPage;
+        
+        $items = $collection->slice($offset, $perPage)->values();
+        
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $collection->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+    }
+
+    /**
      * Rental Monitoring Dashboard
      */
     public function rental(Request $request): View
@@ -112,8 +131,9 @@ class MonitoringController extends Controller
         $recentTransactions = collect($rentalTransactions->all())
             ->merge($paymentTransactions->all())
             ->sortByDesc(fn ($transaction) => $transaction->transaction_date)
-            ->take(10)
             ->values();
+
+        $recentTransactions = $this->paginateCollection($recentTransactions, 10);
 
         $query = Expense::with(['buildingModel', 'roomModel']);
         if ($request->filled('date_from')) {
@@ -122,7 +142,7 @@ class MonitoringController extends Controller
         if ($request->filled('date_to')) {
             $query->where('expense_date', '<=', $request->date_to);
         }
-        $expenses = $query->latest('expense_date')->get();
+        $expenses = $query->latest('expense_date')->paginate(10);
 
         return view('monitoring.rental', [
             'tenants' => $tenants,
@@ -174,7 +194,7 @@ class MonitoringController extends Controller
         if ($request->filled('date_to')) {
             $query->where('transaction_date', '<=', $request->date_to);
         }
-        $salesTransactions = $query->latest('transaction_date')->take(10)->get();
+        $salesTransactions = $query->latest('transaction_date')->paginate(10);
 
         $query = Transaction::byAccount('agriculture')->where('module_type', 'expense');
         if ($request->filled('date_from')) {
@@ -183,7 +203,7 @@ class MonitoringController extends Controller
         if ($request->filled('date_to')) {
             $query->where('transaction_date', '<=', $request->date_to);
         }
-        $expenseTransactions = $query->latest('transaction_date')->take(10)->get();
+        $expenseTransactions = $query->latest('transaction_date')->paginate(10);
 
         return view('monitoring.agriculture', [
             'stats' => [
@@ -195,6 +215,7 @@ class MonitoringController extends Controller
             'salesTransactions' => $salesTransactions,
             'expenseTransactions' => $expenseTransactions,
             'filters' => $request->only(['date_from', 'date_to']),
+            'revenueChart' => Analytics::agricultureRevenueChart(),
         ]);
     }
 
@@ -232,7 +253,7 @@ class MonitoringController extends Controller
         if ($request->filled('date_to')) {
             $query->where('transaction_date', '<=', $request->date_to);
         }
-        $salesTransactions = $query->latest('transaction_date')->take(10)->get();
+        $salesTransactions = $query->latest('transaction_date')->paginate(10);
 
         $query = Transaction::byAccount('tilapia')->where('module_type', 'expense');
         if ($request->filled('date_from')) {
@@ -241,7 +262,7 @@ class MonitoringController extends Controller
         if ($request->filled('date_to')) {
             $query->where('transaction_date', '<=', $request->date_to);
         }
-        $expenseTransactions = $query->latest('transaction_date')->take(10)->get();
+        $expenseTransactions = $query->latest('transaction_date')->paginate(10);
 
         return view('monitoring.tilapia', [
             'stats' => [
@@ -253,6 +274,7 @@ class MonitoringController extends Controller
             'salesTransactions' => $salesTransactions,
             'expenseTransactions' => $expenseTransactions,
             'filters' => $request->only(['date_from', 'date_to']),
+            'revenueChart' => Analytics::tilapiaRevenueChart(),
         ]);
     }
 
@@ -344,7 +366,6 @@ class MonitoringController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'pcv_number' => ['required', 'string', 'max:50'],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
             'description' => ['nullable', 'string', 'max:255'],
             'transaction_date' => ['required', 'date'],
@@ -444,7 +465,6 @@ class MonitoringController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'pcv_number' => ['required', 'string', 'max:50'],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
             'description' => ['nullable', 'string', 'max:255'],
             'transaction_date' => ['required', 'date'],
