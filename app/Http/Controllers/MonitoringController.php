@@ -96,6 +96,8 @@ class MonitoringController extends Controller
                 'transaction_date' => $transaction->transaction_date,
                 'amount' => $transaction->amount,
                 'module_type' => $transaction->module_type,
+                'transaction_id' => $transaction->id,
+                'payment_id' => null,
             ]);
 
         $query = Payment::with(['tenantModel', 'propertyModel', 'roomModel'])
@@ -125,6 +127,8 @@ class MonitoringController extends Controller
                     'amount' => $payment->amount,
                     'module_type' => 'payment',
                     'notes' => $unit,
+                    'transaction_id' => null,
+                    'payment_id' => $payment->id,
                 ];
             });
 
@@ -388,6 +392,61 @@ class MonitoringController extends Controller
     }
 
     /**
+     * Show agriculture sales edit form
+     */
+    public function editAgricultureSales(Transaction $transaction): View
+    {
+        if ($transaction->account_type !== 'agriculture' || $transaction->module_type !== 'income') {
+            abort(404);
+        }
+
+        return view('monitoring.agriculture-sales-edit', [
+            'transaction' => $transaction,
+        ]);
+    }
+
+    /**
+     * Update agriculture sales
+     */
+    public function updateAgricultureSales(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== 'agriculture' || $transaction->module_type !== 'income') {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['nullable', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $transaction->update($validated);
+
+        return redirect()->route('monitoring.agriculture')->with('success', 'Sales updated.');
+    }
+
+    /**
+     * Delete agriculture sales
+     */
+    public function destroyAgricultureSales(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== 'agriculture' || $transaction->module_type !== 'income') {
+            abort(404);
+        }
+
+        // Verify password
+        if (!\Hash::check($request->password, $request->user()->password)) {
+            return back()->withErrors(['password' => 'Incorrect password.']);
+        }
+
+        $transaction->delete();
+
+        return redirect()->route('monitoring.agriculture')->with('success', 'Sales deleted.');
+    }
+
+    /**
      * Show agriculture expenses creation form
      */
     public function createAgricultureExpenses(): View
@@ -451,6 +510,82 @@ class MonitoringController extends Controller
     }
 
     /**
+     * Show agriculture expenses edit form
+     */
+    public function editAgricultureExpenses(Transaction $transaction): View
+    {
+        if ($transaction->account_type !== 'agriculture' || $transaction->module_type !== 'expense') {
+            abort(404);
+        }
+
+        // Get existing categories from database
+        $existingCategories = Transaction::where('account_type', 'agriculture')
+            ->where('module_type', 'expense')
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->pluck('category')
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        // Default categories
+        $defaultCategories = ['Seeds', 'Fertilizer', 'Labor', 'Equipment', 'Transportation', 'Utilities', 'Maintenance', 'Pesticides'];
+
+        // Merge and deduplicate
+        $allCategories = array_unique(array_merge($defaultCategories, $existingCategories));
+        sort($allCategories);
+
+        return view('monitoring.agriculture-expenses-edit', [
+            'transaction' => $transaction,
+            'categories' => $allCategories,
+        ]);
+    }
+
+    /**
+     * Update agriculture expenses
+     */
+    public function updateAgricultureExpenses(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== 'agriculture' || $transaction->module_type !== 'expense') {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'pcv_number' => ['required', 'string', 'max:50'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'category' => ['required', 'string', 'max:100'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $transaction->update($validated);
+
+        return redirect()->route('monitoring.agriculture')->with('success', 'Expense updated.');
+    }
+
+    /**
+     * Delete agriculture expenses
+     */
+    public function destroyAgricultureExpenses(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== 'agriculture' || $transaction->module_type !== 'expense') {
+            abort(404);
+        }
+
+        // Verify password
+        if (!\Hash::check($request->password, $request->user()->password)) {
+            return back()->withErrors(['password' => 'Incorrect password.']);
+        }
+
+        $transaction->delete();
+
+        return redirect()->route('monitoring.agriculture')->with('success', 'Expense deleted.');
+    }
+
+    /**
      * Show tilapia sales creation form
      */
     public function createTilapiaSales(): View
@@ -484,6 +619,61 @@ class MonitoringController extends Controller
         ]);
 
         return redirect()->route('monitoring.tilapia')->with('success', 'Sales recorded.');
+    }
+
+    /**
+     * Show tilapia sales edit form
+     */
+    public function editTilapiaSales(Transaction $transaction): View
+    {
+        if ($transaction->account_type !== 'tilapia' || $transaction->module_type !== 'income') {
+            abort(404);
+        }
+
+        return view('monitoring.tilapia-sales-edit', [
+            'transaction' => $transaction,
+        ]);
+    }
+
+    /**
+     * Update tilapia sales
+     */
+    public function updateTilapiaSales(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== 'tilapia' || $transaction->module_type !== 'income') {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['nullable', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $transaction->update($validated);
+
+        return redirect()->route('monitoring.tilapia')->with('success', 'Sales updated.');
+    }
+
+    /**
+     * Delete tilapia sales
+     */
+    public function destroyTilapiaSales(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== 'tilapia' || $transaction->module_type !== 'income') {
+            abort(404);
+        }
+
+        // Verify password
+        if (!\Hash::check($request->password, $request->user()->password)) {
+            return back()->withErrors(['password' => 'Incorrect password.']);
+        }
+
+        $transaction->delete();
+
+        return redirect()->route('monitoring.tilapia')->with('success', 'Sales deleted.');
     }
 
     /**
@@ -550,6 +740,82 @@ class MonitoringController extends Controller
     }
 
     /**
+     * Show tilapia expenses edit form
+     */
+    public function editTilapiaExpenses(Transaction $transaction): View
+    {
+        if ($transaction->account_type !== 'tilapia' || $transaction->module_type !== 'expense') {
+            abort(404);
+        }
+
+        // Get existing categories from database
+        $existingCategories = Transaction::where('account_type', 'tilapia')
+            ->where('module_type', 'expense')
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->pluck('category')
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        // Default categories
+        $defaultCategories = ['Feed', 'Fingerlings', 'Labor', 'Equipment', 'Transportation', 'Utilities', 'Maintenance', 'Medicine'];
+
+        // Merge and deduplicate
+        $allCategories = array_unique(array_merge($defaultCategories, $existingCategories));
+        sort($allCategories);
+
+        return view('monitoring.tilapia-expenses-edit', [
+            'transaction' => $transaction,
+            'categories' => $allCategories,
+        ]);
+    }
+
+    /**
+     * Update tilapia expenses
+     */
+    public function updateTilapiaExpenses(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== 'tilapia' || $transaction->module_type !== 'expense') {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'pcv_number' => ['required', 'string', 'max:50'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'category' => ['required', 'string', 'max:100'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $transaction->update($validated);
+
+        return redirect()->route('monitoring.tilapia')->with('success', 'Expense updated.');
+    }
+
+    /**
+     * Delete tilapia expenses
+     */
+    public function destroyTilapiaExpenses(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== 'tilapia' || $transaction->module_type !== 'expense') {
+            abort(404);
+        }
+
+        // Verify password
+        if (!\Hash::check($request->password, $request->user()->password)) {
+            return back()->withErrors(['password' => 'Incorrect password.']);
+        }
+
+        $transaction->delete();
+
+        return redirect()->route('monitoring.tilapia')->with('success', 'Expense deleted.');
+    }
+
+    /**
      * Show conel deposit creation form
      */
     public function createConelDeposit(): View
@@ -583,6 +849,61 @@ class MonitoringController extends Controller
         ]);
 
         return redirect()->route('monitoring.conel')->with('success', 'Deposit recorded.');
+    }
+
+    /**
+     * Show conel deposit edit form
+     */
+    public function editConelDeposit(Transaction $transaction): View
+    {
+        if ($transaction->account_type !== 'conel' || $transaction->module_type !== 'income') {
+            abort(404);
+        }
+
+        return view('monitoring.conel-deposit-edit', [
+            'transaction' => $transaction,
+        ]);
+    }
+
+    /**
+     * Update conel deposit
+     */
+    public function updateConelDeposit(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== 'conel' || $transaction->module_type !== 'income') {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $transaction->update($validated);
+
+        return redirect()->route('monitoring.conel')->with('success', 'Deposit updated.');
+    }
+
+    /**
+     * Delete conel deposit
+     */
+    public function destroyConelDeposit(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== 'conel' || $transaction->module_type !== 'income') {
+            abort(404);
+        }
+
+        // Verify password
+        if (!\Hash::check($request->password, $request->user()->password)) {
+            return back()->withErrors(['password' => 'Incorrect password.']);
+        }
+
+        $transaction->delete();
+
+        return redirect()->route('monitoring.conel')->with('success', 'Deposit deleted.');
     }
 
     /**
@@ -622,6 +943,61 @@ class MonitoringController extends Controller
     }
 
     /**
+     * Show conel withdraw edit form
+     */
+    public function editConelWithdraw(Transaction $transaction): View
+    {
+        if ($transaction->account_type !== 'conel' || $transaction->module_type !== 'expense') {
+            abort(404);
+        }
+
+        return view('monitoring.conel-withdraw-edit', [
+            'transaction' => $transaction,
+        ]);
+    }
+
+    /**
+     * Update conel withdraw
+     */
+    public function updateConelWithdraw(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== 'conel' || $transaction->module_type !== 'expense') {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $transaction->update($validated);
+
+        return redirect()->route('monitoring.conel')->with('success', 'Withdrawal updated.');
+    }
+
+    /**
+     * Delete conel withdraw
+     */
+    public function destroyConelWithdraw(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== 'conel' || $transaction->module_type !== 'expense') {
+            abort(404);
+        }
+
+        // Verify password
+        if (!\Hash::check($request->password, $request->user()->password)) {
+            return back()->withErrors(['password' => 'Incorrect password.']);
+        }
+
+        $transaction->delete();
+
+        return redirect()->route('monitoring.conel')->with('success', 'Withdrawal deleted.');
+    }
+
+    /**
      * Show 128 deposit creation form
      */
     public function create128Deposit(): View
@@ -658,6 +1034,61 @@ class MonitoringController extends Controller
     }
 
     /**
+     * Show 128 deposit edit form
+     */
+    public function edit128Deposit(Transaction $transaction): View
+    {
+        if ($transaction->account_type !== '128' || $transaction->module_type !== 'income') {
+            abort(404);
+        }
+
+        return view('monitoring.128-deposit-edit', [
+            'transaction' => $transaction,
+        ]);
+    }
+
+    /**
+     * Update 128 deposit
+     */
+    public function update128Deposit(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== '128' || $transaction->module_type !== 'income') {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $transaction->update($validated);
+
+        return redirect()->route('monitoring.128')->with('success', 'Deposit updated.');
+    }
+
+    /**
+     * Delete 128 deposit
+     */
+    public function destroy128Deposit(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== '128' || $transaction->module_type !== 'income') {
+            abort(404);
+        }
+
+        // Verify password
+        if (!\Hash::check($request->password, $request->user()->password)) {
+            return back()->withErrors(['password' => 'Incorrect password.']);
+        }
+
+        $transaction->delete();
+
+        return redirect()->route('monitoring.128')->with('success', 'Deposit deleted.');
+    }
+
+    /**
      * Show 128 withdraw creation form
      */
     public function create128Withdraw(): View
@@ -691,5 +1122,60 @@ class MonitoringController extends Controller
         ]);
 
         return redirect()->route('monitoring.128')->with('success', 'Withdrawal recorded.');
+    }
+
+    /**
+     * Show 128 withdraw edit form
+     */
+    public function edit128Withdraw(Transaction $transaction): View
+    {
+        if ($transaction->account_type !== '128' || $transaction->module_type !== 'expense') {
+            abort(404);
+        }
+
+        return view('monitoring.128-withdraw-edit', [
+            'transaction' => $transaction,
+        ]);
+    }
+
+    /**
+     * Update 128 withdraw
+     */
+    public function update128Withdraw(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== '128' || $transaction->module_type !== 'expense') {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
+            'description' => ['required', 'string', 'max:255'],
+            'transaction_date' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $transaction->update($validated);
+
+        return redirect()->route('monitoring.128')->with('success', 'Withdrawal updated.');
+    }
+
+    /**
+     * Delete 128 withdraw
+     */
+    public function destroy128Withdraw(Request $request, Transaction $transaction): \Illuminate\Http\RedirectResponse
+    {
+        if ($transaction->account_type !== '128' || $transaction->module_type !== 'expense') {
+            abort(404);
+        }
+
+        // Verify password
+        if (!\Hash::check($request->password, $request->user()->password)) {
+            return back()->withErrors(['password' => 'Incorrect password.']);
+        }
+
+        $transaction->delete();
+
+        return redirect()->route('monitoring.128')->with('success', 'Withdrawal deleted.');
     }
 }

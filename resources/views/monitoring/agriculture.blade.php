@@ -67,6 +67,7 @@
                         <th>Description</th>
                         <th>Amount</th>
                         <th>Notes</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -79,10 +80,21 @@
                                 +₱{{ number_format($transaction->amount, 2) }}
                             </td>
                             <td class="text-xs text-slate-500">{{ $transaction->notes ?? '—' }}</td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <a href="{{ route('monitoring.agriculture.sales.edit', $transaction) }}" class="btn btn-secondary py-1 text-xs">Edit</a>
+                                    <form action="{{ route('monitoring.agriculture.sales.destroy', $transaction) }}" method="POST" class="inline" onsubmit="return confirmDelete(this)">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="password" name="password" placeholder="Password" class="hidden delete-password" required>
+                                        <button type="submit" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-12 text-center text-slate-500">No sales recorded</td>
+                            <td colspan="6" class="py-12 text-center text-slate-500">No sales recorded</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -118,6 +130,7 @@
                         <th>Description</th>
                         <th>Amount</th>
                         <th>Notes</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -132,10 +145,21 @@
                                 -₱{{ number_format($transaction->amount, 2) }}
                             </td>
                             <td class="text-xs text-slate-500">{{ $transaction->notes ?? '—' }}</td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <a href="{{ route('monitoring.agriculture.expenses.edit', $transaction) }}" class="btn btn-secondary py-1 text-xs">Edit</a>
+                                    <form action="{{ route('monitoring.agriculture.expenses.destroy', $transaction) }}" method="POST" class="inline" onsubmit="return confirmDelete(this)">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="password" name="password" placeholder="Password" class="hidden delete-password" required>
+                                        <button type="submit" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="py-12 text-center text-slate-500">No expenses recorded</td>
+                            <td colspan="8" class="py-12 text-center text-slate-500">No expenses recorded</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -154,6 +178,13 @@
     <script>
         const revenueData = @json($revenueChart);
         const revenueCtx = document.getElementById('revenueChart');
+
+        function confirmDelete(form) {
+            const password = prompt('Enter your password to confirm deletion:');
+            if (password === null) return false;
+            form.querySelector('.delete-password').value = password;
+            return true;
+        }
 
         if (revenueCtx) {
             new Chart(revenueCtx, {

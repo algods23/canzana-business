@@ -32,6 +32,7 @@
                         <th>Description</th>
                         <th>Amount</th>
                         <th>Notes</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -44,10 +45,21 @@
                                 +₱{{ number_format($transaction->amount, 2) }}
                             </td>
                             <td class="text-xs text-slate-500">{{ $transaction->notes ?? '—' }}</td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <a href="{{ route('monitoring.conel.deposit.edit', $transaction) }}" class="btn btn-secondary py-1 text-xs">Edit</a>
+                                    <form action="{{ route('monitoring.conel.deposit.destroy', $transaction) }}" method="POST" class="inline" onsubmit="return confirmDelete(this)">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="password" name="password" placeholder="Password" class="hidden delete-password" required>
+                                        <button type="submit" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-12 text-center text-slate-500">No deposits recorded</td>
+                            <td colspan="6" class="py-12 text-center text-slate-500">No deposits recorded</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -81,6 +93,7 @@
                         <th>Description</th>
                         <th>Amount</th>
                         <th>Notes</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -93,10 +106,21 @@
                                 -₱{{ number_format($transaction->amount, 2) }}
                             </td>
                             <td class="text-xs text-slate-500">{{ $transaction->notes ?? '—' }}</td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <a href="{{ route('monitoring.conel.withdraw.edit', $transaction) }}" class="btn btn-secondary py-1 text-xs">Edit</a>
+                                    <form action="{{ route('monitoring.conel.withdraw.destroy', $transaction) }}" method="POST" class="inline" onsubmit="return confirmDelete(this)">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="password" name="password" placeholder="Password" class="hidden delete-password" required>
+                                        <button type="submit" class="btn btn-secondary border-rose-200 py-1 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-12 text-center text-slate-500">No withdrawals recorded</td>
+                            <td colspan="6" class="py-12 text-center text-slate-500">No withdrawals recorded</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -111,66 +135,12 @@
 @endsection
 
 @section('scripts')
-    <div id="transactionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h3 class="mb-4 text-lg font-semibold text-slate-900">Add Transaction</h3>
-            
-            <form method="POST" action="{{ route('monitoring.transaction.store') }}">
-                @csrf
-                <input type="hidden" name="account_type" value="conel">
-                
-                <div class="mb-4">
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700" for="module_type">Type</label>
-                    <select id="module_type" name="module_type" class="input-field w-full" required>
-                        <option value="income">Income</option>
-                        <option value="expense">Expense</option>
-                        <option value="balance_adjustment">Balance Adjustment</option>
-                    </select>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700" for="amount">Amount (₱)</label>
-                    <input id="amount" name="amount" type="number" step="0.01" min="0.01" class="input-field w-full" required>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700" for="description">Description</label>
-                    <input id="description" name="description" type="text" class="input-field w-full" required>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700" for="transaction_date">Date</label>
-                    <input id="transaction_date" name="transaction_date" type="date" value="{{ now()->format('Y-m-d') }}" class="input-field w-full" required>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="mb-1.5 block text-sm font-medium text-slate-700" for="notes">Notes (optional)</label>
-                    <input id="notes" name="notes" type="text" class="input-field w-full">
-                </div>
-                
-                <div class="flex justify-end gap-3">
-                    <button type="button" onclick="closeTransactionModal()" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
-        function openTransactionModal() {
-            document.getElementById('transactionModal').classList.remove('hidden');
-            document.getElementById('transactionModal').classList.add('flex');
+        function confirmDelete(form) {
+            const password = prompt('Enter your password to confirm deletion:');
+            if (password === null) return false;
+            form.querySelector('.delete-password').value = password;
+            return true;
         }
-
-        function closeTransactionModal() {
-            document.getElementById('transactionModal').classList.add('hidden');
-            document.getElementById('transactionModal').classList.remove('flex');
-        }
-
-        document.getElementById('transactionModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeTransactionModal();
-            }
-        });
     </script>
 @endsection
