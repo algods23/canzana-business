@@ -3,7 +3,6 @@
         ['route' => 'monitoring.rental', 'label' => 'Rental Monitoring', 'icon' => 'payment'],
         ['route' => 'monitoring.agriculture', 'label' => 'Agriculture Monitoring', 'icon' => 'expense'],
         ['route' => 'monitoring.tilapia', 'label' => 'Tilapia Monitoring', 'icon' => 'expense'],
-        ['route' => 'activity.index', 'label' => 'Activity Log', 'icon' => 'activity'],
     ];
 
     $monitoringItems = [
